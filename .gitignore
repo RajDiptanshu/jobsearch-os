@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Personal data / PII — resume, comp, contact details
+data/profile.json
+
+# Live scraped job data & run history — real (possibly copyrighted) scraped content
+data/jobs.json
+data/runs.json
+
+# Real sent artifacts — actual email digests / application drafts
+data/outbox/
+data/applications/
+data/incoming/
+!data/incoming/.gitkeep
+
+# Logs
+data/logs/
+
+# Playwright browser binaries (installed via `npm run setup-naukri`)
+.playwright-mcp/
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+*.log

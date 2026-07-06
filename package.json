@@ -1,0 +1,19 @@
+{
+  "name": "jobsearch-os",
+  "version": "1.0.0",
+  "description": "Automated PM job discovery, matching, resume-tailoring suggestions, dashboard and hourly email alerts (Tsenta-style) for Indian job market",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "run-pipeline": "node pipeline/run.js",
+    "dev": "node server.js",
+    "setup-naukri": "npm install playwright --no-fund --no-audit && npx playwright install chromium"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "imapflow": "^1.4.3",
+    "mailparser": "^3.9.12",
+    "nodemailer": "^6.9.0",
+    "playwright": "^1.61.1"
+  }
+}

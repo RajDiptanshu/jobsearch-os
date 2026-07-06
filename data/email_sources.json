@@ -1,0 +1,48 @@
+{
+  "_comment": "Gmail INBOX is scanned for job-alert emails from these portal domains, plus any email whose subject matches a job keyword (treated as a direct recruiter mail). Add senders freely.",
+  "portal_domains": [
+    "iimjobs.com",
+    "hirist.com",
+    "hirist.tech",
+    "instahyre.com",
+    "naukri.com",
+    "linkedin.com",
+    "cutshort.io",
+    "wellfound.com",
+    "angel.co",
+    "updazz.com",
+    "shine.com",
+    "foundit.in",
+    "monster.com",
+    "timesjobs.com",
+    "glassdoor.com",
+    "indeed.com",
+    "ycombinator.com",
+    "levels.fyi",
+    "talent500.co",
+    "hellopm.co",
+    "theproductspace.in",
+    "pminterviewprep.club"
+  ],
+  "subject_keywords": [
+    "product manager",
+    "job opportunity",
+    "opening",
+    "hiring",
+    "we are hiring",
+    "opportunity for",
+    "job alert",
+    "jobs for you",
+    "recommended jobs",
+    "new jobs",
+    "career opportunity",
+    "pm role",
+    "senior product"
+  ],
+  "ignore_senders": [
+    "no-reply@accounts.google.com",
+    "security"
+  ],
+  "lookback_days": 14,
+  "max_emails_per_scan": 60
+}

@@ -1,0 +1,406 @@
+{
+  "_comment": "Company career boards polled hourly (Tsenta-style ATS monitoring). ats: greenhouse|lever|ashby. token = board identifier in the ATS public API. enabled:false = probe failed or paused. Add companies here anytime.",
+  "boards": [
+    {
+      "company": "CRED",
+      "ats": "greenhouse",
+      "token": "cred",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.589Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Groww",
+      "ats": "greenhouse",
+      "token": "groww",
+      "enabled": true,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": true
+    },
+    {
+      "company": "Meesho",
+      "ats": "greenhouse",
+      "token": "meesho",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Zepto",
+      "ats": "greenhouse",
+      "token": "zepto",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "CoinDCX",
+      "ats": "greenhouse",
+      "token": "coindcx",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Postman",
+      "ats": "greenhouse",
+      "token": "postman",
+      "enabled": true,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": true
+    },
+    {
+      "company": "Chargebee",
+      "ats": "greenhouse",
+      "token": "chargebee",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "BrowserStack",
+      "ats": "greenhouse",
+      "token": "browserstack",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Innovaccer",
+      "ats": "greenhouse",
+      "token": "innovaccer",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Whatfix",
+      "ats": "greenhouse",
+      "token": "whatfix",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Sprinto",
+      "ats": "greenhouse",
+      "token": "sprinto",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Jupiter",
+      "ats": "greenhouse",
+      "token": "jupiter",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Razorpay",
+      "ats": "greenhouse",
+      "token": "razorpaysoftwareprivatelimited",
+      "enabled": true,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": true
+    },
+    {
+      "company": "PhonePe",
+      "ats": "greenhouse",
+      "token": "phonepe",
+      "enabled": true,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": true
+    },
+    {
+      "company": "Swiggy",
+      "ats": "greenhouse",
+      "token": "swiggy",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Flipkart",
+      "ats": "greenhouse",
+      "token": "flipkart",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Urban Company",
+      "ats": "greenhouse",
+      "token": "urbancompany",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Acko",
+      "ats": "greenhouse",
+      "token": "acko",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Slice",
+      "ats": "greenhouse",
+      "token": "sliceit",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Rippling",
+      "ats": "greenhouse",
+      "token": "rippling",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Hasura",
+      "ats": "greenhouse",
+      "token": "hasura",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Gusto (India)",
+      "ats": "greenhouse",
+      "token": "gusto",
+      "enabled": true,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": true
+    },
+    {
+      "company": "Netradyne",
+      "ats": "greenhouse",
+      "token": "netradyne",
+      "enabled": true,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": true
+    },
+    {
+      "company": "Dream Sports (Dream11)",
+      "ats": "lever",
+      "token": "dreamsports",
+      "enabled": true,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": true
+    },
+    {
+      "company": "ShareChat",
+      "ats": "lever",
+      "token": "sharechat",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Porter",
+      "ats": "lever",
+      "token": "porter",
+      "enabled": true,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": true
+    },
+    {
+      "company": "MPL",
+      "ats": "lever",
+      "token": "mpl",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Zetwerk",
+      "ats": "lever",
+      "token": "zetwerk",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Simpl",
+      "ats": "lever",
+      "token": "getsimpl",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Smallcase",
+      "ats": "lever",
+      "token": "smallcase",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Plum",
+      "ats": "lever",
+      "token": "plumhq",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Yellow.ai",
+      "ats": "lever",
+      "token": "yellowai",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Setu",
+      "ats": "lever",
+      "token": "setu",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Khatabook",
+      "ats": "lever",
+      "token": "khatabook",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Navi",
+      "ats": "lever",
+      "token": "navi",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Cleartrip",
+      "ats": "lever",
+      "token": "cleartrip",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Ixigo",
+      "ats": "lever",
+      "token": "ixigo",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Atlan",
+      "ats": "ashby",
+      "token": "atlan",
+      "enabled": true,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": true
+    },
+    {
+      "company": "DevRev",
+      "ats": "ashby",
+      "token": "DevRev",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Jar",
+      "ats": "ashby",
+      "token": "jar",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Zamp",
+      "ats": "ashby",
+      "token": "zamp",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Fold Money",
+      "ats": "ashby",
+      "token": "fold",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Hiver",
+      "ats": "ashby",
+      "token": "hiver",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Peakflo",
+      "ats": "ashby",
+      "token": "peakflo",
+      "enabled": false,
+      "last_probe": "2026-07-04T17:45:57.605Z",
+      "last_probe_ok": false
+    },
+    {
+      "company": "Turing (Remote)",
+      "ats": "greenhouse",
+      "token": "turing",
+      "enabled": true,
+      "last_probe_ok": true
+    },
+    {
+      "company": "Careem (Dubai)",
+      "ats": "greenhouse",
+      "token": "careem",
+      "enabled": true,
+      "last_probe_ok": true
+    },
+    {
+      "company": "Glean (Bengaluru)",
+      "ats": "greenhouse",
+      "token": "gleanwork",
+      "enabled": true,
+      "last_probe_ok": true
+    },
+    {
+      "company": "Databricks (Bengaluru)",
+      "ats": "greenhouse",
+      "token": "databricks",
+      "enabled": true,
+      "last_probe_ok": true
+    },
+    {
+      "company": "PostHog (Remote)",
+      "ats": "ashby",
+      "token": "posthog",
+      "enabled": true,
+      "last_probe_ok": true
+    },
+    {
+      "company": "Supabase (Remote)",
+      "ats": "ashby",
+      "token": "supabase",
+      "enabled": true,
+      "last_probe_ok": true
+    },
+    {
+      "company": "OpenAI",
+      "ats": "ashby",
+      "token": "openai",
+      "enabled": true,
+      "last_probe_ok": true
+    }
+  ]
+}
