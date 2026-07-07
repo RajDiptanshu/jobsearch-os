@@ -18,11 +18,12 @@ function loadState(){
   s.activity = s.activity || {};
   s.moduleProgress = s.moduleProgress || {};
   s.sessions = s.sessions || [];
-  s.settings = Object.assign({ voiceInput:true, readAloud:false, aiFeedback:false, apiKey:'', aiModel:'claude-sonnet-5' }, s.settings || {});
+  s.settings = Object.assign({ voiceInput:true, readAloud:false, aiFeedback:false, apiKey:'', aiModel:'claude-sonnet-5', aiProvider:'anthropic', openaiKey:'', openaiModel:'gpt-4o' }, s.settings || {});
   return s;
 }
 let STATE = loadState();
 function save(){ localStorage.setItem(LS_KEY, JSON.stringify(STATE)); }
+window.__coachSettings = () => STATE.settings;   // read-only bridge for ai.js
 
 function recordSession(sess){
   STATE.sessions.unshift(sess);
@@ -297,6 +298,12 @@ function renderQuickPractice(moduleId){
   wrap.appendChild(el(`<div class="card"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)">Question</div><div style="font-size:18px;font-weight:600;margin-top:6px;line-height:1.5">${esc(q.q)}</div>
     <div style="margin-top:8px"><button class="btn sm ghost" onclick="toggleRead(this)" data-q="${esc(q.q)}">🔊 Read aloud</button></div></div>`));
   wrap.appendChild(answerBox('quick'));
+  // AI tutor CTAs
+  wrap.appendChild(el(`<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn ghost" id="qpEval">✨ Evaluate & improve my answer</button>
+    <button class="btn ghost" id="qpFull">💡 Complete answer</button></div>`));
+  wrap.appendChild(el('<div class="aipanel" id="qpEvalPanel" style="display:none;margin-top:12px"></div>'));
+  wrap.appendChild(el('<div class="aipanel" id="qpFullPanel" style="display:none;margin-top:12px"></div>'));
   const guide = el(`<div class="card" style="margin-top:14px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px">Framework to structure your answer</div>${m.learn.framework.map((f,i)=>`<div style="font-size:13px;margin:5px 0"><b style="color:var(--accent-bright)">${i+1}. ${esc(f.step)}</b> — <span style="color:var(--text-dim)">${esc(f.detail)}</span></div>`).join('')}</div>`);
   wrap.appendChild(guide);
   // self rate + save
@@ -316,6 +323,31 @@ function renderQuickPractice(moduleId){
       toast('Rep saved ✓'); location.hash = '#/module/'+m.id;
     };
     startTimer('#qTimer', started);
+    // AI tutor wiring (quick practice has no `flow` — call CoachAI directly)
+    const qcat = (QB.categories||[]).find(c=>c.moduleId===m.id) || null;
+    $('#qpFull').onclick = function(){
+      const p=$('#qpFullPanel');
+      if(p.style.display!=='none' && p.dataset.done){ p.style.display='none'; this.textContent='💡 Complete answer'; return; }
+      p.style.display='block'; this.textContent='▲ Hide complete answer'; p.dataset.done='1';
+      p.innerHTML=''; const card=el(`<div class="card" style="background:rgba(16,185,129,.05);border-color:rgba(16,185,129,.22)"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--accent-bright);font-weight:700;margin-bottom:8px">💡 Complete model answer</div><div class="aibody" style="font-size:13.5px;color:var(--text-dim);line-height:1.75"></div></div>`);
+      p.appendChild(card);
+      CoachAI.runInto(card.querySelector('.aibody'), 'complete:qp:'+m.id+':'+idx, ()=>CoachAI.completeAnswerPrompts(q.q, qcat));
+    };
+    $('#qpEval').onclick = async function(){
+      const text = ($('#answerText')&&$('#answerText').value.trim())||'';
+      if(!text){ toast('Type or speak an answer first — then I can evaluate it'); return; }
+      const p=$('#qpEvalPanel'); p.style.display='block'; p.innerHTML='';
+      const card=el(`<div class="card" style="background:rgba(91,147,214,.05);border-color:rgba(91,147,214,.25)"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--blue);font-weight:700;margin-bottom:8px">🤖 AI tutor — evaluation & upgraded answer</div><div class="aibody" style="font-size:13.5px;color:var(--text-dim);line-height:1.75"></div></div>`);
+      p.appendChild(card); const body=card.querySelector('.aibody');
+      if(!CoachAI.configured()){ body.innerHTML=`🔑 <b>Connect your AI first.</b> Add your OpenAI (GPT-4o) or Claude key in <a href="#/settings">Settings</a>.`; return; }
+      this.disabled=true;
+      try{
+        const {system,user}=CoachAI.evaluatePrompts(q.q,'','',text,qcat);
+        const full=await CoachAI.stream({system,user,onDelta:(_,sofar)=>{ body.innerHTML=CoachAI.md(sofar)+'<span style="color:var(--accent-bright)">▌</span>'; }});
+        body.innerHTML=CoachAI.md(full);
+      }catch(e){ body.innerHTML=`<span style="color:var(--red)">⚠ ${esc(e.message)}</span>`; }
+      this.disabled=false;
+    };
   },0);
   return wrap;
 }
@@ -371,8 +403,11 @@ function renderStage(){
   // reveal + next controls
   root.appendChild(el(`<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap" id="stageCtrl">
      <button class="btn" onclick="revealStage()">Reveal model points & pushback</button>
-     ${STATE.settings.aiFeedback && STATE.settings.apiKey ? '<button class="btn ghost" onclick="aiGrade()">🤖 Get AI feedback</button>':''}
+     <button class="btn ghost" onclick="aiEvaluate(this)">✨ Evaluate & improve my answer</button>
+     <button class="btn ghost" onclick="aiCompleteFlow(this)">💡 Complete answer</button>
   </div>`));
+  root.appendChild(el('<div class="aipanel" id="aiEvalPanel" style="display:none;margin-top:12px" ></div>'));
+  root.appendChild(el('<div class="aipanel" id="aiFullPanel" style="display:none;margin-top:12px"></div>'));
   root.appendChild(el('<div id="reveal"></div>'));
   startTimer('#stTimer', Date.now());
 }
@@ -393,16 +428,43 @@ window.revealStage = ()=>{
   box.appendChild(el(`<div style="margin-top:14px"><button class="btn" onclick="nextStage()">${isLast?'Finish & self-score →':'Next stage →'}</button></div>`));
   $('#stageCtrl').style.display='none';
 };
-window.aiGrade = async ()=>{
-  const s = flow.c.stages[flow.stage]; const ansEl = $('#answerText'); const text = ansEl?ansEl.value.trim():'';
-  if(!text){ toast('Type an answer first for AI feedback'); return; }
-  const btn = event.target; btn.disabled=true; btn.textContent='🤖 Grading…';
+// category context for the current flow (guided carries it; cases map via moduleId)
+function flowCategory(){
+  if(!flow || !flow.c) return null;
+  if(flow.c.category) return flow.c.category;
+  return (QB.categories||[]).find(c=>c.moduleId===flow.c.moduleId) || null;
+}
+window.aiEvaluate = async (btn)=>{
+  const s = flow.c.stages[flow.stage];
+  const ansEl = $('#answerText'); const text = ansEl?ansEl.value.trim():'';
+  const panel = $('#aiEvalPanel'); if(!panel) return;
+  if(!text){ toast('Type or speak an answer first — then I can evaluate it'); return; }
+  panel.style.display='block';
+  panel.innerHTML='';
+  const card = el(`<div class="card" style="background:rgba(91,147,214,.05);border-color:rgba(91,147,214,.25)"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--blue);font-weight:700;margin-bottom:8px">🤖 AI tutor — evaluation & upgraded answer</div><div class="aibody" style="font-size:13.5px;color:var(--text-dim);line-height:1.75"></div></div>`);
+  panel.appendChild(card);
+  const body = card.querySelector('.aibody');
+  btn.disabled=true;
+  if(!CoachAI.configured()){
+    body.innerHTML = `🔑 <b>Connect your AI first.</b> Add your OpenAI (GPT-4o) or Claude key in <a href="#/settings">Settings</a> — stored in this browser only.`;
+    btn.disabled=false; return;
+  }
   try{
-    const fb = await gradeWithAI(s.ask, text, s.modelPoints, flow.c.rubric);
-    const box = $('#reveal');
-    box.insertBefore(el(`<div class="card" style="margin-top:14px;background:rgba(91,147,214,.05);border-color:rgba(91,147,214,.25)"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--blue);font-weight:700">🤖 AI feedback</div><div style="font-size:13.5px;color:var(--text-dim);margin-top:6px;white-space:pre-wrap;line-height:1.7">${esc(fb)}</div></div>`), box.firstChild);
-  }catch(e){ toast('AI feedback failed: '+e.message); }
-  btn.disabled=false; btn.textContent='🤖 Get AI feedback';
+    const { system, user } = CoachAI.evaluatePrompts(flow.c.prompt, s.hint||'', s.ask, text, flowCategory());
+    const full = await CoachAI.stream({ system, user, onDelta:(_,sofar)=>{ body.innerHTML = CoachAI.md(sofar)+'<span style="color:var(--accent-bright)">▌</span>'; } });
+    body.innerHTML = CoachAI.md(full);
+  }catch(e){ body.innerHTML = `<span style="color:var(--red)">⚠ ${esc(e.message)}</span>`; }
+  btn.disabled=false;
+};
+window.aiCompleteFlow = (btn)=>{
+  const panel = $('#aiFullPanel'); if(!panel) return;
+  if(panel.style.display!=='none' && panel.dataset.done){ panel.style.display='none'; btn.textContent='💡 Complete answer'; return; }
+  panel.style.display='block'; btn.textContent='▲ Hide complete answer';
+  panel.innerHTML='';
+  const card = el(`<div class="card" style="background:rgba(16,185,129,.05);border-color:rgba(16,185,129,.22)"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--accent-bright);font-weight:700;margin-bottom:8px">💡 Complete model answer</div><div class="aibody" style="font-size:13.5px;color:var(--text-dim);line-height:1.75"></div></div>`);
+  panel.appendChild(card);
+  panel.dataset.done='1';
+  CoachAI.runInto(card.querySelector('.aibody'), 'complete:flow:'+flow.c.id, ()=>CoachAI.completeAnswerPrompts(flow.c.prompt, flowCategory()));
 };
 function renderFlowScore(){
   const c = flow.c; const root = $('#flowRoot'); root.innerHTML='';
@@ -481,13 +543,28 @@ function drawBank(){
   $('#bankCount').textContent = `${rows.length} question${rows.length===1?'':'s'}${q?' matching "'+bankState.q+'"':''}${rows.length>150?' — showing 150':''}`;
   list.innerHTML = shown.map(r=>{
     const co=companyOf(r.text);
-    return `<div class="card" style="padding:13px 15px;display:flex;gap:12px;align-items:center">
-      <span style="font-size:18px;flex:none">${r.cat.icon}</span>
-      <div style="flex:1;min-width:0"><div style="font-size:13.5px;color:var(--text);line-height:1.5">${esc(r.text)}</div>
-        <div class="chipset" style="margin-top:5px"><span class="pill" style="padding:2px 8px;font-size:10.5px">${esc(r.cat.title)}</span>${co?`<span class="pill" style="padding:2px 8px;font-size:10.5px;color:var(--muted)">${esc(co)}</span>`:''}</div></div>
-      <button class="btn sm" style="flex:none" onclick="location.hash='#/guided/${r.cid}:${r.idx}'">Practice →</button></div>`;
+    return `<div class="card" style="padding:13px 15px">
+      <div style="display:flex;gap:12px;align-items:center">
+        <span style="font-size:18px;flex:none">${r.cat.icon}</span>
+        <div style="flex:1;min-width:0"><div style="font-size:13.5px;color:var(--text);line-height:1.5">${esc(r.text)}</div>
+          <div class="chipset" style="margin-top:5px"><span class="pill" style="padding:2px 8px;font-size:10.5px">${esc(r.cat.title)}</span>${co?`<span class="pill" style="padding:2px 8px;font-size:10.5px;color:var(--muted)">${esc(co)}</span>`:''}</div></div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex:none;align-items:stretch">
+          <button class="btn sm" onclick="location.hash='#/guided/${r.cid}:${r.idx}'">Practice →</button>
+          <button class="btn sm ghost" onclick="bankAnswer(this,'${r.cid}',${r.idx})">💡 Complete answer</button>
+        </div>
+      </div>
+      <div class="aipanel" id="bkans-${r.cid}-${r.idx}" style="display:none;margin-top:12px;border-top:1px solid var(--line-soft);padding-top:12px;font-size:13.5px;color:var(--text-dim);line-height:1.75"></div>
+    </div>`;
   }).join('') || '<div class="card" style="text-align:center;color:var(--muted)">No questions match your search.</div>';
 }
+
+window.bankAnswer = (btn, cid, idx)=>{
+  const panel = $('#bkans-'+cid+'-'+idx); if(!panel) return;
+  if(panel.style.display!=='none'){ panel.style.display='none'; btn.textContent='💡 Complete answer'; return; }
+  panel.style.display='block'; btn.textContent='▲ Hide answer';
+  const cat = qbCatById(cid); const q = (QB.byCategory[cid]||[])[idx];
+  CoachAI.runInto(panel, 'complete:'+cid+':'+idx, ()=>CoachAI.completeAnswerPrompts(q, cat));
+};
 
 /* ---------------- GUIDED PRACTICE (step-by-step, any bank question) ---------------- */
 function renderGuided(arg){
@@ -529,7 +606,9 @@ function renderGuidedIntro(){
   }
   root.appendChild(el(`<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
     <button class="btn" onclick="nextStage()">▶ Start guided practice</button>
+    <button class="btn ghost" onclick="aiCompleteFlow(this)">💡 Give me the complete answer</button>
     <span style="font-size:12px;color:var(--muted)">You'll answer each step (type or speak); after each, see what a strong answer covers.</span></div>`));
+  root.appendChild(el('<div class="aipanel" id="aiFullPanel" style="display:none;margin-top:12px"></div>'));
   return root;
 }
 
@@ -637,15 +716,33 @@ function renderSettings(){
     ${toggleRow('voiceInput','Enable microphone answer input by default', s.voiceInput)}
   </div>`));
   wrap.appendChild(el(`<div class="card" style="margin-top:14px">
-    <div style="font-weight:650">Optional: AI feedback on your answers</div>
-    <div style="font-size:12.5px;color:var(--muted);margin:6px 0 10px">Grades your typed answer against the model points using your own Anthropic API key. The key is stored <b>only in this browser</b> (localStorage) and sent directly to Anthropic — never to any server. Leave off to use the built-in model points + self-scoring, which need no key.</div>
-    ${toggleRow('aiFeedback','Enable AI feedback button in case flows', s.aiFeedback)}
-    <div style="margin-top:10px;display:grid;gap:8px">
-      <input id="setApiKey" placeholder="sk-ant-… (optional, stored locally)" value="${esc(s.apiKey)}" style="background:var(--panel-2);border:1px solid var(--line-bright);color:var(--text);border-radius:9px;padding:10px 12px;font-size:13px">
-      <select id="setModel" style="background:var(--panel-2);border:1px solid var(--line-bright);color:var(--text-dim);border-radius:9px;padding:9px 11px;font-size:13px">
-        ${['claude-sonnet-5','claude-haiku-4-5-20251001','claude-opus-4-8'].map(mo=>`<option value="${mo}" ${s.aiModel===mo?'selected':''}>${mo}</option>`).join('')}
-      </select>
-      <div><button class="btn sm" onclick="saveSettings()">Save settings</button></div>
+    <div style="font-weight:650">🤖 AI Tutor — connect GPT-4o or Claude</div>
+    <div style="font-size:12.5px;color:var(--muted);margin:6px 0 12px">Powers <b>"Evaluate & improve my answer"</b> and <b>"Give me the complete answer"</b> on every question. Bring your own key — it's stored <b>only in this browser</b> (localStorage) and sent directly to the provider, never to any server of ours. Without a key, the built-in model points + self-scoring still work.</div>
+    <div style="display:grid;gap:10px">
+      <div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:5px">Provider</div>
+        <select id="setProvider" style="width:100%;background:var(--panel-2);border:1px solid var(--line-bright);color:var(--text);border-radius:9px;padding:10px 11px;font-size:13px" onchange="document.getElementById('anthBlock').style.display=this.value==='anthropic'?'grid':'none';document.getElementById('oaiBlock').style.display=this.value==='openai'?'grid':'none'">
+          <option value="anthropic" ${s.aiProvider!=='openai'?'selected':''}>Claude (Anthropic)</option>
+          <option value="openai" ${s.aiProvider==='openai'?'selected':''}>GPT-4o (OpenAI)</option>
+        </select>
+      </div>
+      <div id="anthBlock" style="display:${s.aiProvider!=='openai'?'grid':'none'};gap:8px">
+        <input id="setApiKey" type="password" placeholder="sk-ant-…  (console.anthropic.com → API keys)" value="${esc(s.apiKey)}" autocomplete="off" style="background:var(--panel-2);border:1px solid var(--line-bright);color:var(--text);border-radius:9px;padding:10px 12px;font-size:13px">
+        <select id="setModel" style="background:var(--panel-2);border:1px solid var(--line-bright);color:var(--text-dim);border-radius:9px;padding:9px 11px;font-size:13px">
+          ${['claude-sonnet-5','claude-haiku-4-5-20251001','claude-opus-4-8'].map(mo=>`<option value="${mo}" ${s.aiModel===mo?'selected':''}>${mo}</option>`).join('')}
+        </select>
+      </div>
+      <div id="oaiBlock" style="display:${s.aiProvider==='openai'?'grid':'none'};gap:8px">
+        <input id="setOpenaiKey" type="password" placeholder="sk-…  (platform.openai.com → API keys)" value="${esc(s.openaiKey)}" autocomplete="off" style="background:var(--panel-2);border:1px solid var(--line-bright);color:var(--text);border-radius:9px;padding:10px 12px;font-size:13px">
+        <select id="setOpenaiModel" style="background:var(--panel-2);border:1px solid var(--line-bright);color:var(--text-dim);border-radius:9px;padding:9px 11px;font-size:13px">
+          ${['gpt-4o','gpt-4o-mini'].map(mo=>`<option value="${mo}" ${s.openaiModel===mo?'selected':''}>${mo}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn sm" onclick="saveSettings()">Save settings</button>
+        <button class="btn ghost sm" onclick="testAI(this)">Test connection</button>
+        <span id="aiTestResult" style="font-size:12px;color:var(--muted)"></span>
+      </div>
     </div>
   </div>`));
   wrap.appendChild(el(`<div class="card" style="margin-top:14px">
@@ -666,26 +763,25 @@ window.saveSettings = ()=>{
   document.querySelectorAll('input[data-setting]').forEach(c=>{ STATE.settings[c.dataset.setting]=c.checked; });
   const k=$('#setApiKey'); if(k) STATE.settings.apiKey=k.value.trim();
   const m=$('#setModel'); if(m) STATE.settings.aiModel=m.value;
+  const p=$('#setProvider'); if(p) STATE.settings.aiProvider=p.value;
+  const ok=$('#setOpenaiKey'); if(ok) STATE.settings.openaiKey=ok.value.trim();
+  const om=$('#setOpenaiModel'); if(om) STATE.settings.openaiModel=om.value;
   save(); toast('Settings saved ✓');
+};
+window.testAI = async (btn)=>{
+  window.saveSettings();
+  const out=$('#aiTestResult'); out.textContent='testing…'; btn.disabled=true;
+  try{
+    if(!CoachAI.configured()) throw new Error('no key entered');
+    const r = await CoachAI.stream({ system:'Reply with exactly: OK', user:'ping', maxTokens:10 });
+    out.textContent = r.trim().slice(0,40) ? `✓ connected (${CoachAI.model()})` : '✓ connected';
+    out.style.color='var(--accent-bright)';
+  }catch(e){ out.textContent='✗ '+(e.message==='NO_KEY'?'no key entered':e.message); out.style.color='var(--red)'; }
+  btn.disabled=false;
 };
 window.exportData = ()=>{ const blob=new Blob([JSON.stringify(STATE,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`pmcoach-progress-${todayKey()}.json`; a.click(); };
 window.importData = (e)=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); STATE=Object.assign(loadState(),d); save(); toast('Imported ✓'); router(); }catch{ toast('Invalid file'); } }; r.readAsText(f); };
 window.resetData = ()=>{ if(confirm('Erase all practice progress in this browser?')){ localStorage.removeItem(LS_KEY); STATE=loadState(); toast('Progress reset'); location.hash='#/'; router(); } };
-
-/* ---------------- optional AI feedback via user's own key ---------------- */
-async function gradeWithAI(question, answer, modelPoints, rubric){
-  const key = STATE.settings.apiKey; if(!key) throw new Error('no API key set');
-  const sys = `You are a senior PM interview coach. Grade the candidate's answer to a product-manager interview question. Be concise and specific. Give: (1) a score out of 10, (2) 2 strengths, (3) 2 concrete improvements, (4) one thing an interviewer would push back on. Keep under 180 words.`;
-  const user = `QUESTION:\n${question}\n\nCANDIDATE ANSWER:\n${answer}\n\nWHAT A STRONG ANSWER HITS:\n- ${modelPoints.join('\n- ')}\n\nEVALUATION CRITERIA:\n- ${rubric.join('\n- ')}`;
-  const res = await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{ 'content-type':'application/json', 'x-api-key':key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
-    body: JSON.stringify({ model: STATE.settings.aiModel||'claude-sonnet-5', max_tokens: 500, system: sys, messages:[{role:'user',content:user}] })
-  });
-  if(!res.ok){ const t=await res.text(); throw new Error(`HTTP ${res.status} ${t.slice(0,120)}`); }
-  const d = await res.json();
-  return (d.content && d.content[0] && d.content[0].text) || '(no feedback returned)';
-}
 
 /* ---------------- boot ---------------- */
 if(!location.hash) location.hash='#/';

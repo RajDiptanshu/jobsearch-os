@@ -9,6 +9,8 @@ const { DATA, loadJson, saveJson, loadEnv } = require('./pipeline/lib');
 const { suggestForJob } = require('./pipeline/suggest');
 const { scoreJob } = require('./pipeline/score');
 const { generateApplication, sendApplicationEmail } = require('./pipeline/apply');
+const { loadResume, tailorResume, resumePdf } = require('./pipeline/resume');
+const { aiConfig } = require('./pipeline/ai');
 
 const env = loadEnv();
 const PORT = +(env.PORT || 4321);
@@ -163,6 +165,35 @@ const server = http.createServer(async (req, res) => {
       }
       saveJson('jobs.json', store);
       return json(res, 200, { ok: true, application: job.application });
+    }
+
+    // ---------- resume tailoring ----------
+    if (p === '/api/resume' && req.method === 'GET') {
+      try { const r = loadResume(env); const ai = aiConfig(env);
+        return json(res, 200, { markdown: r.markdown, path: r.path, ai_configured: !!ai.key, ai_provider: ai.provider, ai_model: ai.model });
+      } catch (e) { return json(res, 500, { error: e.message }); }
+    }
+
+    if (p.match(/^\/api\/jobs\/[^/]+\/tailor-resume$/) && req.method === 'POST') {
+      const id = decodeURIComponent(p.split('/')[3]);
+      const store = loadJson('jobs.json', { jobs: [] });
+      const job = store.jobs.find(j => j.id === id);
+      if (!job) return json(res, 404, { error: 'job not found' });
+      try {
+        const markdown = await tailorResume(job, env);
+        return json(res, 200, { ok: true, markdown, job: { title: job.title, company: job.company } });
+      } catch (e) { return json(res, 502, { ok: false, error: e.message }); }
+    }
+
+    if (p === '/api/resume/pdf' && req.method === 'POST') {
+      const body = await readBody(req);
+      if (!body.markdown || body.markdown.length < 100) return json(res, 400, { error: 'markdown required' });
+      try {
+        const pdf = await resumePdf(String(body.markdown).slice(0, 60000));
+        const fname = (body.filename || 'resume.pdf').replace(/[^\w.\- ]+/g, '').slice(0, 80) || 'resume.pdf';
+        res.writeHead(200, { 'Content-Type': 'application/pdf', 'Content-Disposition': `attachment; filename="${fname}"`, 'Cache-Control': 'no-store' });
+        return res.end(pdf);
+      } catch (e) { return json(res, 502, { error: e.message }); }
     }
 
     if (p === '/api/status' && req.method === 'GET') {

@@ -242,6 +242,28 @@
 </div>
 <div class="toast" id="toast"></div>
 
+<!-- Tailored-resume modal -->
+<div id="tailorModal" style="display:none;position:fixed;inset:0;background:rgba(4,6,10,.82);z-index:70;padding:3vh 3vw" onclick="if(event.target===this)closeTailor()">
+  <div style="max-width:920px;height:94vh;margin:0 auto;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line-bright);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.6)">
+    <div style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)">
+      <span style="font-size:20px">🪄</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:15px">Tailored resume <span id="tailorJobLabel" style="color:var(--gold);font-weight:600"></span></div>
+        <div id="tailorStatus" style="font-size:12px;color:var(--muted);margin-top:2px">…</div>
+      </div>
+      <button class="status" style="cursor:pointer" onclick="closeTailor()">✕ Close</button>
+    </div>
+    <textarea id="tailorMd" spellcheck="false" style="flex:1;margin:14px 18px 0;background:var(--panel-2);border:1px solid var(--line-bright);border-radius:12px;color:var(--text);font:12.5px/1.6 Consolas,monospace;padding:14px;resize:none;outline:none" placeholder="Your tailored resume will appear here — edit anything before exporting."></textarea>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px 18px">
+      <button class="primary" id="tailorPdfBtn" onclick="downloadTailorPdf()" disabled>⬇ Convert to PDF</button>
+      <button class="status" style="cursor:pointer" id="tailorCopyBtn" onclick="copyTailorMd()" disabled>📋 Copy markdown</button>
+      <button class="status" style="cursor:pointer" id="tailorRegenBtn" onclick="regenTailor()" disabled>↻ Regenerate</button>
+      <span style="flex:1"></span>
+      <span style="font-size:11.5px;color:var(--muted)">Edit freely above — the PDF uses exactly what's in this box. Truthful rewrite only: reorders & rewords, never invents.</span>
+    </div>
+  </div>
+</div>
+
 <script>
 let statusFilter = 'all';
 let debounceT = null;
@@ -345,7 +367,10 @@ function jobCard(j){
       <div class="sugs">
         <h4>Resume changes suggested (${(j.suggestions||[]).length})</h4>
         ${sugs||'<div class="meta">No suggestions.</div>'}
-        <div style="margin-top:12px"><a href="${esc(j.apply_url||j.url)}" target="_blank" rel="noopener"><button class="primary" style="width:100%">Apply / open posting →</button></a></div>
+        <div style="margin-top:12px;display:grid;gap:8px">
+          <button class="primary" style="width:100%;background:linear-gradient(140deg,#c9a86a,#8a7444);color:#161006" onclick="openTailor('${j.id}')">🪄 Tailor my resume for this JD</button>
+          <a href="${esc(j.apply_url||j.url)}" target="_blank" rel="noopener"><button class="primary" style="width:100%">Apply / open posting →</button></a>
+        </div>
       </div>
     </div>
   </div>`;
@@ -390,6 +415,51 @@ async function loadStatus(){
   $('outboxLinks').innerHTML=(st.outbox||[]).slice(0,4).map(f=>`<div>✉︎ <a href="/outbox/${encodeURIComponent(f)}" target="_blank">${esc(f)}</a></div>`).join('')||'<span style="color:var(--muted)">No digests yet.</span>';
 }
 async function runNow(){ $('runBtn').disabled=true; $('runBtn').textContent='⏳ Starting…'; const r=await fetch('/api/run',{method:'POST'}); if(r.status===409) toast('Already running'); setTimeout(loadStatus,800); }
+
+/* ---------- resume tailoring ---------- */
+let tailorCtx = null;
+function tailorButtons(enabled){ ['tailorPdfBtn','tailorCopyBtn','tailorRegenBtn'].forEach(i=>$(i).disabled=!enabled); }
+async function openTailor(id){
+  tailorCtx = { id, company:'' };
+  $('tailorModal').style.display='block';
+  $('tailorJobLabel').textContent='';
+  $('tailorMd').value='';
+  tailorButtons(false);
+  await runTailor();
+}
+async function runTailor(){
+  $('tailorStatus').textContent='🤖 Reading your master resume and rewriting it for this JD… (usually 15–40s)';
+  try{
+    const r = await fetch('/api/jobs/'+encodeURIComponent(tailorCtx.id)+'/tailor-resume',{method:'POST'});
+    const d = await r.json();
+    if(!d.ok) throw new Error(d.error||'tailoring failed');
+    tailorCtx.company = d.job.company||'';
+    $('tailorJobLabel').textContent = '— '+d.job.title+' @ '+d.job.company;
+    $('tailorMd').value = d.markdown;
+    $('tailorStatus').textContent = '✓ Tailored. Review & edit below, then Convert to PDF.';
+    tailorButtons(true);
+  }catch(e){
+    $('tailorStatus').innerHTML = '⚠ '+e.message.replace(/</g,'&lt;')+(/No AI key/i.test(e.message)?' — open <code>jobsearch-os\\.env</code> and paste your key, then restart the dashboard.':'');
+    $('tailorRegenBtn').disabled=false;
+  }
+}
+function regenTailor(){ tailorButtons(false); runTailor(); }
+function closeTailor(){ $('tailorModal').style.display='none'; }
+function copyTailorMd(){ navigator.clipboard.writeText($('tailorMd').value).then(()=>toast('Markdown copied')); }
+async function downloadTailorPdf(){
+  const md = $('tailorMd').value.trim();
+  if(md.length<100){ toast('Nothing to export yet'); return; }
+  const btn=$('tailorPdfBtn'); btn.disabled=true; btn.textContent='⏳ Rendering PDF…';
+  try{
+    const fname = 'Diptanshu_Resume_'+(tailorCtx.company||'Tailored').replace(/[^\w]+/g,'_').replace(/^_+|_+$/g,'')+'.pdf';
+    const r = await fetch('/api/resume/pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({markdown:md,filename:fname})});
+    if(!r.ok){ const d=await r.json().catch(()=>({})); throw new Error(d.error||('HTTP '+r.status)); }
+    const blob = await r.blob();
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click(); URL.revokeObjectURL(a.href);
+    toast('⬇ '+fname);
+  }catch(e){ toast('PDF failed: '+e.message); }
+  btn.disabled=false; btn.textContent='⬇ Convert to PDF';
+}
 
 loadJobs(); loadStatus(); loadQueue();
 setInterval(loadStatus, 5000);
