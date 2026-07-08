@@ -167,6 +167,44 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true, application: job.application });
     }
 
+    // ---------- coach AI proxy (streams Anthropic/OpenAI using the .env key — no browser key needed) ----------
+    if (p === '/api/coach/ai' && req.method === 'GET') {
+      const ai = aiConfig(env);
+      return json(res, 200, { available: !!ai.key, provider: ai.provider, model: ai.model });
+    }
+    if (p === '/api/coach/stream' && req.method === 'POST') {
+      const body = await readBody(req);
+      const { provider, key, model } = aiConfig(env);
+      const sys = String(body.system || '').slice(0, 20000);
+      const usr = String(body.user || '').slice(0, 20000);
+      const maxTokens = Math.min(+(body.maxTokens || 2200), 4096);
+      res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no' });
+      const send = (o) => res.write(`data: ${JSON.stringify(o)}\n\n`);
+      if (!key) { send({ error: 'No server AI key — add ANTHROPIC_API_KEY to jobsearch-os/.env' }); send('[DONE]'); return res.end(); }
+      try {
+        const upstream = provider === 'openai'
+          ? await fetch('https://api.openai.com/v1/chat/completions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + key }, body: JSON.stringify({ model, max_tokens: maxTokens, stream: true, messages: [{ role: 'system', content: sys }, { role: 'user', content: usr }] }) })
+          : await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' }, body: JSON.stringify({ model, max_tokens: maxTokens, stream: true, system: sys, messages: [{ role: 'user', content: usr }] }) });
+        if (!upstream.ok) { const t = await upstream.text().catch(() => ''); send({ error: `${provider} HTTP ${upstream.status} ${t.slice(0, 160)}` }); send('[DONE]'); return res.end(); }
+        const reader = upstream.body.getReader(); const dec = new TextDecoder(); let buf = '';
+        while (true) {
+          const { done, value } = await reader.read(); if (done) break;
+          buf += dec.decode(value, { stream: true }); const lines = buf.split('\n'); buf = lines.pop();
+          for (const line of lines) {
+            const l = line.trim(); if (!l.startsWith('data:')) continue;
+            const payload = l.slice(5).trim(); if (payload === '[DONE]') continue;
+            try { const j = JSON.parse(payload); let delta = '';
+              if (provider === 'openai') delta = (j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content) || '';
+              else if (j.type === 'content_block_delta' && j.delta && j.delta.text) delta = j.delta.text;
+              if (delta) send({ t: delta });
+            } catch { /* partial line */ }
+          }
+        }
+        send('[DONE]'); res.end();
+      } catch (e) { send({ error: e.message }); send('[DONE]'); res.end(); }
+      return;
+    }
+
     // ---------- resume tailoring ----------
     if (p === '/api/resume' && req.method === 'GET') {
       try { const r = loadResume(env); const ai = aiConfig(env);

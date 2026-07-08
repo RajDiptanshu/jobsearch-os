@@ -76,6 +76,7 @@ const routes = {
   'module': (id)=>renderModule(id),
   'case': (id)=>renderCase(id),
   'bank': (id)=>renderBank(id),
+  'company': (id)=>renderCompany(id),
   'guided': (arg)=>renderGuided(arg),
   'practice': (id)=> id ? renderQuickPractice(id) : renderPracticePicker(),
   'history': renderHistory,
@@ -110,11 +111,16 @@ function renderHome(){
   // Question Bank banner
   const qbTotal = Object.values((window.COACH_QUESTIONS||{byCategory:{}}).byCategory).reduce((a,b)=>a+b.length,0);
   if(qbTotal){
-    wrap.appendChild(el(`<div class="card" style="margin-top:16px;display:flex;gap:14px;align-items:center;cursor:pointer;background:linear-gradient(180deg,rgba(16,185,129,.06),var(--panel-2));border-color:var(--line-bright)" onclick="location.hash='#/bank'">
-      <div style="font-size:30px">📚</div>
-      <div style="flex:1"><div style="font-weight:700;font-size:16px">Question Bank — ${qbTotal} real interview questions</div>
-        <div style="font-size:12.5px;color:var(--muted);margin-top:3px">Product Design · Data & Metrics · Problem Solving · Estimation · Behavioural — each with step-by-step guided practice.</div></div>
-      <span class="btn sm">Open bank →</span></div>`));
+    const g = el('<div class="grid" style="grid-template-columns:1fr 1fr;margin-top:16px"></div>');
+    g.appendChild(el(`<div class="card" style="display:flex;gap:13px;align-items:center;cursor:pointer;background:linear-gradient(180deg,rgba(16,185,129,.06),var(--panel-2));border-color:var(--line-bright)" onclick="location.hash='#/bank'">
+      <div style="font-size:28px">📚</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:15px">Question Bank — ${qbTotal} questions</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">9 rounds: design, metrics, RCA, estimation, behavioural, strategy, technical, HR, hiring-manager. Full AI answers.</div></div></div>`));
+    g.appendChild(el(`<div class="card" style="display:flex;gap:13px;align-items:center;cursor:pointer;background:linear-gradient(180deg,rgba(201,168,106,.06),var(--panel-2));border-color:var(--line-bright)" onclick="location.hash='#/company'">
+      <div style="font-size:28px">🏢</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:15px">Prep by Company</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">Google, Amazon, Razorpay, Zomato, Stripe… AI interview guide + questions framed per company.</div></div></div>`));
+    wrap.appendChild(g);
   }
 
   // Today's plan
@@ -464,7 +470,8 @@ window.aiCompleteFlow = (btn)=>{
   const card = el(`<div class="card" style="background:rgba(16,185,129,.05);border-color:rgba(16,185,129,.22)"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--accent-bright);font-weight:700;margin-bottom:8px">💡 Complete model answer</div><div class="aibody" style="font-size:13.5px;color:var(--text-dim);line-height:1.75"></div></div>`);
   panel.appendChild(card);
   panel.dataset.done='1';
-  CoachAI.runInto(card.querySelector('.aibody'), 'complete:flow:'+flow.c.id, ()=>CoachAI.completeAnswerPrompts(flow.c.prompt, flowCategory()));
+  const co = flow.c.targetCompany;
+  CoachAI.runInto(card.querySelector('.aibody'), 'complete:flow:'+flow.c.id+(co?':'+co:''), ()=>CoachAI.completeAnswerPrompts(flow.c.prompt, flowCategory(), { company: co }));
 };
 function renderFlowScore(){
   const c = flow.c; const root = $('#flowRoot'); root.innerHTML='';
@@ -511,6 +518,18 @@ function renderBank(catId){
     <div style="font-size:22px;font-weight:700;letter-spacing:-.4px">📚 Question Bank</div>
     <span class="pill">500 real interview questions</span></div>`));
   wrap.appendChild(el(`<div class="card" style="color:var(--text-dim);font-size:13.5px;margin-top:10px">Pick any question and the coach walks you through the right framework <b style="color:var(--text)">one step at a time</b> — you answer (type or speak), then see exactly what a strong answer covers at that step. From the "600 Product Management Interview Questions" set.</div>`));
+
+  // Featured worked case studies (theproductfolks-style, full AI answer)
+  const feats = (QB.featured||[]).map(f=>{ const arr=QB.byCategory[f.cid]||[]; const idx=arr.findIndex(x=>x.includes(f.match)); return idx>=0?{...f,idx}:null; }).filter(Boolean);
+  if(feats.length){
+    const fc = el(`<div style="margin-top:14px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--gold);font-weight:700;margin:0 2px 8px">⭐ Featured case studies — full worked answers</div></div>`);
+    const fg = el('<div class="grid" style="grid-template-columns:repeat(3,1fr)"></div>');
+    feats.forEach(f=> fg.appendChild(el(`<div class="card" style="cursor:pointer;border-color:rgba(201,168,106,.3)" onclick="location.hash='#/guided/${f.cid}:${f.idx}'">
+      <div style="font-size:13.5px;font-weight:600;color:var(--text);line-height:1.4">${esc(f.label)}</div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px">${esc(qbCatById(f.cid).title)} · ${esc(f.source)}</div>
+      <div style="margin-top:10px"><span class="btn sm">Practice + full answer →</span></div></div>`)));
+    fc.appendChild(fg); wrap.appendChild(fc);
+  }
 
   // category tabs
   const tabs = el('<div class="chipset" style="margin:14px 0"></div>');
@@ -566,6 +585,62 @@ window.bankAnswer = (btn, cid, idx)=>{
   CoachAI.runInto(panel, 'complete:'+cid+':'+idx, ()=>CoachAI.completeAnswerPrompts(q, cat));
 };
 
+/* ---------------- COMPANY / INDUSTRY PREP ---------------- */
+let activeCompany = null;
+window.practiceForCompany = (cid, idx, company)=>{ activeCompany = company||null; location.hash = '#/guided/'+cid+':'+idx; };
+function companyQuestions(name){
+  const out = [];
+  for(const cat of QB.categories){
+    (QB.byCategory[cat.id]||[]).forEach((q,idx)=>{ if(q.toLowerCase().includes(name.toLowerCase())) out.push({cid:cat.id, idx, q, cat}); });
+  }
+  return out.slice(0,14);
+}
+function renderCompany(arg){
+  const company = arg ? decodeURIComponent(arg) : null;
+  if(!company) {
+    // grid grouped by industry
+    const wrap = el(`<div><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px"><div style="font-size:22px;font-weight:700;letter-spacing:-.4px">🏢 Prep by Company</div><span class="pill">industry & company-specific</span></div></div>`);
+    wrap.appendChild(el(`<div class="card" style="color:var(--text-dim);font-size:13.5px;margin-top:10px">Pick a company → get an AI-generated <b style="color:var(--text)">interview guide</b> (their process, what they test, likely questions) plus real questions to practice <b style="color:var(--text)">framed for that company</b>. Your background is fraud/payments/GenAI — fintech & consumer companies are your home turf.</div>`));
+    (QB.companies||[]).forEach(group=>{
+      wrap.appendChild(el(`<h2 class="sec"><span class="bar"></span>${esc(group.industry)}</h2>`));
+      const g = el('<div class="grid" style="grid-template-columns:repeat(3,1fr)"></div>');
+      group.items.forEach(c=> g.appendChild(el(`<div class="card" style="cursor:pointer" onclick="location.hash='#/company/'+encodeURIComponent('${esc(c.name).replace(/'/g,"\\'")}')">
+        <div style="font-weight:650;font-size:15px">${esc(c.name)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5">${esc(c.tests)}</div>
+        <div style="margin-top:10px"><span class="btn sm ghost">Open guide →</span></div></div>`)));
+      wrap.appendChild(g);
+    });
+    return wrap;
+  }
+  // company detail
+  let industry = '';
+  for(const grp of (QB.companies||[])) for(const c of grp.items) if(c.name===company) industry = grp.industry;
+  const wrap = el('<div></div>');
+  wrap.appendChild(el(`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap"><a class="btn sm ghost" href="#/company">← All companies</a><span class="pill">${esc(industry||'Company')}</span></div>`));
+  wrap.appendChild(el(`<div style="font-size:24px;font-weight:750;letter-spacing:-.5px">${esc(company)} — interview prep</div>`));
+  // AI guide
+  const guideCard = el(`<div class="card" style="margin-top:12px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--accent-bright);font-weight:700">🤖 AI interview guide</div><button class="btn sm ghost" id="genGuide">Generate guide</button></div><div class="aibody" id="guideBody" style="font-size:13.5px;color:var(--text-dim);line-height:1.75">Click <b>Generate guide</b> for ${esc(company)}'s interview process, what they test, and likely questions.</div></div>`);
+  wrap.appendChild(guideCard);
+  // relevant questions
+  const qs = companyQuestions(company);
+  if(qs.length){
+    wrap.appendChild(el(`<h2 class="sec"><span class="bar"></span>Real questions mentioning ${esc(company)} <span class="tag">${qs.length}</span></h2>`));
+    const ql = el('<div class="grid" style="gap:9px"></div>');
+    qs.forEach(x=> ql.appendChild(el(`<div class="card" style="padding:12px 15px;display:flex;gap:12px;align-items:center">
+      <span style="font-size:16px">${x.cat.icon}</span>
+      <div style="flex:1;font-size:13px;color:var(--text)">${esc(x.q)}</div>
+      <button class="btn sm" onclick="practiceForCompany('${x.cid}',${x.idx},'${esc(company).replace(/'/g,"\\'")}')">Practice →</button></div>`)));
+    wrap.appendChild(ql);
+  }
+  wrap.appendChild(el(`<h2 class="sec"><span class="bar"></span>Practice any round, framed for ${esc(company)}</h2>`));
+  const rg = el('<div class="grid" style="grid-template-columns:repeat(3,1fr)"></div>');
+  QB.categories.forEach(cat=>{ const arr=QB.byCategory[cat.id]||[]; const idx=Math.floor(Math.random()*arr.length);
+    rg.appendChild(el(`<div class="card" style="cursor:pointer" onclick="practiceForCompany('${cat.id}',${idx},'${esc(company).replace(/'/g,"\\'")}')"><span style="font-size:20px">${cat.icon}</span><div style="font-weight:600;margin-top:6px;font-size:14px">${esc(cat.title)}</div><div style="font-size:11.5px;color:var(--muted);margin-top:3px">random Q, ${esc(company)} context</div></div>`)); });
+  wrap.appendChild(rg);
+  setTimeout(()=>{ $('#genGuide').onclick=()=>{ CoachAI.runInto($('#guideBody'), 'guide:'+company, ()=>CoachAI.companyGuidePrompts(company, industry)); }; },0);
+  return wrap;
+}
+
 /* ---------------- GUIDED PRACTICE (step-by-step, any bank question) ---------------- */
 function renderGuided(arg){
   const [cid, idxStr] = String(arg||'').split(':');
@@ -577,10 +652,11 @@ function renderGuided(arg){
   const synth = {
     id: `guided-${cid}-${idx}`, sessionType:'guided', retryHash:`#/guided/${cid}:${idx}`,
     moduleId: cat.moduleId, title: question.length>70?question.slice(0,70)+'…':question, company: cat.title, difficulty:'Core',
-    estMinutes: cat.framework.length*3, prompt: question, category: cat,
+    estMinutes: cat.framework.length*3, prompt: question, category: cat, targetCompany: activeCompany,
     stages: cat.framework.map(s=>({ ask: s.prompt, hint: s.name, modelPoints: [s.coaching, ...(s.tips||[])], pushback:null })),
     rubric: cat.framework.map(s=>s.name)
   };
+  activeCompany = null;   // consume it (only applies to this launch)
   flow = { c: synth, stage:-1, started:Date.now(), answers:[] };
   const wrap = el('<div id="flowRoot"></div>');
   setTimeout(()=>renderGuidedIntro(), 0);
@@ -588,7 +664,7 @@ function renderGuided(arg){
 }
 function renderGuidedIntro(){
   const c = flow.c; const cat = c.category; const root = $('#flowRoot'); if(!root) return; root.innerHTML='';
-  root.appendChild(el(`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap"><a class="btn sm ghost" href="#/bank/${cat.id}">← Question Bank</a><span class="pill">${cat.icon} ${esc(cat.title)}</span><span class="pill" style="padding:3px 9px">${c.stages.length} steps</span></div>`));
+  root.appendChild(el(`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap"><a class="btn sm ghost" href="#/bank/${cat.id}">← Question Bank</a><span class="pill">${cat.icon} ${esc(cat.title)}</span><span class="pill" style="padding:3px 9px">${c.stages.length} steps</span>${c.targetCompany?`<span class="pill" style="padding:3px 9px;color:var(--gold);border-color:rgba(201,168,106,.35)">🏢 ${esc(c.targetCompany)} context</span>`:''}</div>`));
   root.appendChild(el(`<div class="card" style="border-color:var(--line-bright)">
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)">Interview question</div>
     <div style="font-size:18.5px;font-weight:650;margin:8px 0 4px;line-height:1.45">${esc(c.prompt)}</div>
@@ -717,7 +793,8 @@ function renderSettings(){
   </div>`));
   wrap.appendChild(el(`<div class="card" style="margin-top:14px">
     <div style="font-weight:650">🤖 AI Tutor — connect GPT-4o or Claude</div>
-    <div style="font-size:12.5px;color:var(--muted);margin:6px 0 12px">Powers <b>"Evaluate & improve my answer"</b> and <b>"Give me the complete answer"</b> on every question. Bring your own key — it's stored <b>only in this browser</b> (localStorage) and sent directly to the provider, never to any server of ours. Without a key, the built-in model points + self-scoring still work.</div>
+    <div id="aiServerStatus" style="font-size:12.5px;margin:8px 0;padding:9px 12px;border-radius:9px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted)">checking AI connection…</div>
+    <div style="font-size:12.5px;color:var(--muted);margin:6px 0 12px">Powers <b>"Evaluate & improve my answer"</b> and <b>"Give me the complete answer"</b> on every question. On your <b>local dashboard</b> it uses the key in <code>jobsearch-os/.env</code> automatically. On the <b>deployed site</b>, bring your own key below — stored <b>only in this browser</b>, sent directly to the provider.</div>
     <div style="display:grid;gap:10px">
       <div>
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:5px">Provider</div>
@@ -754,6 +831,13 @@ function renderSettings(){
       <button class="btn ghost sm" style="color:var(--red);border-color:rgba(229,105,95,.3)" onclick="resetData()">Reset all progress</button>
     </div>
   </div>`));
+  setTimeout(async ()=>{
+    const box=$('#aiServerStatus'); if(!box) return;
+    await CoachAI.ready();
+    if(CoachAI.hasServer()){ box.innerHTML='✅ <b style="color:var(--accent-bright)">AI ready by default</b> — using the key in your <code>.env</code> ('+esc(CoachAI.activeLabel())+'). No browser key needed here.'; box.style.borderColor='rgba(16,185,129,.3)'; }
+    else if(CoachAI.configured()){ box.innerHTML='✅ <b style="color:var(--accent-bright)">Connected</b> via your browser key ('+esc(CoachAI.activeLabel())+').'; box.style.borderColor='rgba(16,185,129,.3)'; }
+    else { box.innerHTML='🔑 No AI connected yet — add a key below to unlock live answers.'; }
+  },0);
   return wrap;
 }
 function toggleRow(key,label,val){

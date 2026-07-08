@@ -130,6 +130,100 @@ window.COACH_QUESTIONS = {
         question: "Tell me about a project that failed or underperformed. What did you do?",
         answer: "S/T: My first blacklist A/B test to block repeat fraudsters underperformed — conversion dropped on genuine bookings. I owned the rollout across 4 brands.\nAction: I root-caused it to data quality — the 'confirmed fraud' database had Forter false-positives concentrated in Instant Ticketing, so we were blocking real customers. I re-scrutinized the fraud data with stricter confirmation criteria, filtered the false-positive-prone segment, and re-ran the phased A/B rather than abandoning the idea. I brought Fraud, DB/IT, and Digital along despite skepticism after the first miss.\nResult: the cleaned-up version cut algorithmic fraud cancellations 74.6% and manual 47% — and reached 100% rollout. Learned to validate the ground-truth data before trusting a historical label; I now treat data quality as a first-class pre-launch gate."
       }
+    },
+    {
+      id: "strategy", title: "Product Strategy & GTM", icon: "♟️", moduleId: "strategy",
+      blurb: "Business calls: build/buy/partner, market entry, monetization, launch. Objective first, commit to a recommendation.",
+      framework: [
+        { name: "Clarify the objective", prompt: "What business outcome are we driving — revenue, market share, retention, defensibility? Restate it and confirm the time horizon.",
+          coaching: "Every strategy answer must open with the goal. 'Grow' is not a goal — pick revenue vs share vs retention vs a strategic moat, because it changes the whole answer. Confirm constraints (budget, timeline, regulatory).",
+          tips: ["Name the one metric that would prove success before you propose anything.", "For build/buy/partner, frame it as a decision, not a yes/no."] },
+        { name: "Generate options", prompt: "Lay out 2–3 genuinely different strategic paths (not one obvious path + two straw men).",
+          coaching: "Interviewers reward real optionality. For a market-entry, that might be: go premium, go mass, or partner. For build/buy/partner, spell out all three honestly.",
+          tips: ["Make the options mutually distinct.", "Include the 'do nothing / stay focused' option where relevant."] },
+        { name: "Evaluate trade-offs", prompt: "Score the options on cost, time-to-value, risk, strategic fit, and reversibility.",
+          coaching: "Be explicit and comparative. A quick 2x2 or a scored table in words shows structured judgment. This is where 2026 interviewers separate real reasoning from framework recitation.",
+          tips: ["Reversibility matters — a cheap reversible bet beats an expensive irreversible one.", "Anchor in a real number, not abstract theory."] },
+        { name: "Recommend", prompt: "Commit to ONE path with an explicit 'because', and name what would change your mind.",
+          coaching: "Don't fence-sit. State the recommendation, the single strongest reason, and the disconfirming signal you'd watch for. Conviction with a stated kill-criterion reads as maturity.",
+          tips: ["One-sentence recommendation up front, then support it.", "Name the leading indicator you'd track in week 1."] },
+        { name: "Risks & metrics", prompt: "Name the top risk + a mitigation, and the proof metric + leading indicator.",
+          coaching: "Close by de-risking your own call and defining how you'd know it's working, so the interviewer trusts you'd catch a wrong bet early.",
+          tips: ["Pair the North-Star with a guardrail.", "Say when you'd pull the plug."] }
+      ],
+      example: {
+        question: "Should Razorpay build its own consumer UPI app? Your CEO wants a recommendation.",
+        answer: "## 1. Objective\nClarify: is the goal consumer distribution, data, or defensibility vs PhonePe/GPay? Assume it's defensibility + cross-sell into their merchant base. Horizon: 3 years.\n## 2. Options\n(a) Build a standalone consumer UPI app; (b) Embed UPI deeper into merchant checkouts (stay B2B2C); (c) Partner/white-label.\n## 3. Trade-offs\nBuild: huge CAC, brand shift B2B→B2C, years to scale, ~zero-margin UPI — but owns consumer data. Embed: fast, low risk, leverages their real moat (merchants). Partner: fastest, weakest moat.\n## 4. Recommendation\nDon't build a standalone app — double down on merchant + embedded UPI and monetize adjacent credit. Because their edge is merchants, not consumer acquisition, and PhonePe/GPay own ~85% share.\n## 5. Risks & metrics\nRisk: a competitor's consumer app eats merchant relationships — mitigate by locking merchants with credit/settlement products. Proof metric: merchant UPI TPV + credit attach; leading indicator: merchant churn."
+      }
+    },
+    {
+      id: "technical", title: "Technical / App Critique", icon: "🧩", moduleId: "system-design",
+      blurb: "Critique or explain a product technically at PM depth — the why & what, trade-offs, not code.",
+      framework: [
+        { name: "What it is / how it works", prompt: "Explain the product or system at a high level in plain language — the main components and data flow.",
+          coaching: "Show you understand the machine without drowning in implementation. Name the major pieces and how data moves between them.",
+          tips: ["State assumptions about scale early (users, QPS) — it frames every later point.", "Tie each technical choice to a user/business need."] },
+        { name: "Users & critical flows", prompt: "Who are the actors and what are the 2–3 critical paths through the product?",
+          coaching: "Ground the critique in real usage — the flows that matter most are where problems and opportunities live.",
+          tips: ["Pick the highest-frequency or highest-stakes flow to focus on."] },
+        { name: "What's good / what's weak", prompt: "Give an honest critique or name the key design trade-offs (reliability, latency, clarity, cost).",
+          coaching: "Balanced judgment beats a takedown. Name what the product does well AND the sharpest weakness, with the trade-off behind it.",
+          tips: ["For an API/dev-tool, judge it on ease of correct integration.", "Call out the one thing you'd never trade off."] },
+        { name: "Improvements", prompt: "Propose 2–3 concrete improvements and why, each tied to a user or business need.",
+          coaching: "Prioritize — don't list ten. Two well-reasoned improvements with impact-vs-effort logic show product judgment.",
+          tips: ["Sequence them: quick win first, foundational change second."] },
+        { name: "Measure success/health", prompt: "How would you measure whether the product/feature is healthy and improving?",
+          coaching: "Close with the metrics + guardrails that would tell you the system is working and your changes helped.",
+          tips: ["Health metrics (latency, error rate) + outcome metrics (task success)."] }
+      ],
+      example: {
+        question: "How would you design / critique a payments API? What makes it good to build on?",
+        answer: "## 1. How it works\nA payments API exposes create-charge, auth/capture, refund, webhooks and dispute handling over HTTPS; the developer is the real 'user'. Assume thousands of merchants integrating.\n## 2. Critical flows\nOne-time charge, recurring/mandate, and refund/dispute — plus the async webhook that reconciles state.\n## 3. What's good / weak\nGood: idempotency keys so retries never double-charge; predictable, well-documented errors. Weak point to guard: async state — if webhooks are unreliable, integrators build wrong logic. Reliability is the one thing I'd never trade off.\n## 4. Improvements\n(1) Idempotency + a sandbox with test cards to make correct integration the default. (2) Versioning that never breaks live integrators. (3) Clear, machine-readable error taxonomy.\n## 5. Health\nAuth/success rate, p99 latency, error rate by type; adoption: time-to-first-successful-charge; trust: double-charge rate + support tickets per 1k integrations."
+      }
+    },
+    {
+      id: "hr", title: "HR / Recruiter Screen", icon: "🤝", moduleId: "behavioral",
+      blurb: "Fit, motivation, logistics: 'tell me about yourself', why-this-company, strengths, salary. Crisp, honest, tailored.",
+      framework: [
+        { name: "Read the real question", prompt: "What is the recruiter actually checking — communication, motivation, fit, or a red-flag scan (gaps, job-hopping, comp)?",
+          coaching: "HR questions test signal, not depth. 'Tell me about yourself' checks structure + relevance; 'why leaving' scans for red flags. Answer the intent, not just the words.",
+          tips: ["Keep answers 60–120 seconds — this round rewards concision.", "Never badmouth a current employer."] },
+        { name: "Structure the answer", prompt: "Pick the right mini-structure: TMAY → Present/Past/Future; Why-us → 2–3 specific reasons; Strength/Weakness → proof + growth.",
+          coaching: "A structured HR answer stands out because most people ramble. For 'tell me about yourself': present (current role + one signature win) → past (the arc) → future (why this move now).",
+          tips: ["Lead with your current signature achievement.", "Tie 'why this company' to something specific about THEM, not generic praise."] },
+        { name: "Make it specific & honest", prompt: "Add one concrete proof point; be honest on weaknesses, gaps, and comp with positive framing.",
+          coaching: "Specifics build trust. For salary, give a reasoned range and rationale, not a single hard number. For a weakness, name a real one + what you're doing about it.",
+          tips: ["For comp, anchor to market + your value, and say you're open to discussing.", "One genuine weakness beats a humblebrag."] },
+        { name: "Close with fit", prompt: "End by connecting your motivation to this specific role and what you'd bring.",
+          coaching: "Land the plane by linking your story to why THIS role, THIS company, now — it signals intent, not just availability.",
+          tips: ["Show you've researched the role.", "Signal enthusiasm without desperation."] }
+      ],
+      example: {
+        question: "Tell me about yourself.",
+        answer: "## Present\nI'm a Product Manager at Fareportal working on fraud, risk and payments — most recently I shipped a GPT-4o fraud-decisioning panel that's live in shadow mode, cutting review handle-time.\n## Past\nI started in engineering at Infosys, did an MBA at IIM Lucknow, and moved into product because I wanted to own outcomes, not just delivery. Over ~3 years in PM I've gone deep on the conversion-vs-fraud trade-off — a blacklist engine that cut fraud cancellations ~75%, a vendor optimization that saved $124K.\n## Future\nI'm looking to bring that fraud/payments + applied-GenAI depth to a product org building at India scale — which is exactly why this role interests me."
+      }
+    },
+    {
+      id: "hiring-manager", title: "Hiring Manager / Experience", icon: "🧭", moduleId: "behavioral",
+      blurb: "Deep-dives into your real work: 'walk me through a product you shipped', hardest trade-off, biggest failure.",
+      framework: [
+        { name: "Pick the right story", prompt: "Choose a real project that maps to what this role needs — and that you can defend under 15 minutes of digging.",
+          coaching: "Hiring managers probe depth. Pick the story where you owned a hard decision and can go three layers deep on the data, the dissent, and the alternative you rejected.",
+          tips: ["Match the story to the role's core challenge.", "Have your Failure story ready — it's the most-probed."] },
+        { name: "Context (with a number)", prompt: "Set the product/problem and why it mattered — quantify the stakes.",
+          coaching: "Two sentences of context with a number ($570K exposure, 1M+ users) makes the interviewer care before you get into the how.",
+          tips: ["Stakes first, then your specific ownership."] },
+        { name: "Your role & the hard decision", prompt: "What did YOU own, and the key trade-off you made — including the option you rejected and why.",
+          coaching: "This is the core. Show the decision, the tension, and your judgment. Name who pushed back and how you handled it — influence without authority is a top signal.",
+          tips: ["Use 'I', not 'we'.", "The rejected alternative shows judgment."] },
+        { name: "Result & reflection", prompt: "Quantified outcome + the sharpest thing you learned or would do differently.",
+          coaching: "Land it with numbers and a genuine reflection. The 'what I'd change' line is what separates senior from mid-level.",
+          tips: ["A specific % / ₹ / time beats 'it went well'."] }
+      ],
+      example: {
+        question: "Walk me through a product you shipped end-to-end. What was the hardest decision?",
+        answer: "## Context\nRepeat fraudsters were creating bookings across 4 travel brands, each caught only after a booking-ID was created — driving CCV review load and chargeback exposure.\n## My role & the hard decision\nI owned the blacklist engine 0→1. The hard call: my first A/B underperformed — conversion dropped on genuine bookings. I could have killed it; instead I root-caused it to Forter false-positives in the 'confirmed fraud' data, and rebuilt the confirmation criteria. I rejected the 'trust the historical label' approach in favor of a stricter, data-quality-gated one, despite team skepticism after the miss.\n## Result & reflection\nThe cleaned-up version cut algorithmic fraud cancellations 74.6% and manual 47%, reaching 100% rollout. I learned to treat ground-truth data quality as a first-class pre-launch gate — now I validate the label before trusting any model built on it."
+      }
     }
   ],
 
@@ -237,6 +331,7 @@ window.COACH_QUESTIONS = {
       "Design Uber for kids."
     ],
     metrics: [
+      "You launched a new feature that tracks daily steps in the Apple Health app. How would you measure its success?",
       "What metrics would you use to measure the success of the Save feature at Facebook?",
       "How would you measure the success of Facebook Likes?",
       "What metrics would you look at as a product manager for Instagram ads?",
@@ -339,6 +434,8 @@ window.COACH_QUESTIONS = {
       "Imagine you are PM of Uber's search map. How would you calculate its success?"
     ],
     problem: [
+      "Zomato's average restaurant rating in Pune has dropped by 10% over the past month. As the PM, how would you investigate and fix it?",
+      "Tata Cliq's website bounce rate has increased by 25%. Diagnose the root cause and recommend fixes.",
       "A metric for a video streaming service dropped by 80%. What do you do?",
       "Your new feature boosts Amazon Search by 10% but adds 2 seconds to load time. What do you do?",
       "Drivers are dropping out of a city on Lyft. How do you figure out what's going on?",
@@ -643,6 +740,136 @@ window.COACH_QUESTIONS = {
       "Provide an example where you took a product from inception to launch. What challenges did you face?",
       "What makes you want to leave your current job?",
       "What makes you want to stay in Product Management long term?"
+    ],
+    strategy: [
+      "Should Razorpay build its own consumer UPI app? Your CEO wants a recommendation.",
+      "How would you evaluate whether to build, buy, or partner for a new fraud-detection capability?",
+      "How would you launch a standalone food-delivery app in a market where two incumbents own 90% share?",
+      "WhatsApp wants to grow revenue in India — what's your strategy?",
+      "Should Netflix enter the live-sports streaming market? Make the call.",
+      "How would you price a brand-new B2B analytics product with no direct comparable?",
+      "Amazon wants to enter the Indian pharmacy market — what's your go-to-market?",
+      "Your subscription product has flat growth. Do you cut price, add a tier, or change the funnel?",
+      "How would you 4x Swiggy's revenue over three years?",
+      "Should Spotify build a podcast-creation tool, or acquire one?",
+      "How would you decide which two countries to expand a fintech wallet into next?",
+      "PhonePe got a huge valuation — as PM, what's the next strategic bet you'd make?",
+      "How would you take a successful US SaaS product into India?",
+      "Uber is losing share to a cheaper local competitor in one city. What's your strategic response?",
+      "How would you monetize a free consumer app with 50M MAU without hurting engagement?",
+      "Should a bank build its own UPI stack or ride a third-party aggregator?",
+      "How would you sequence a 0→1 product roadmap for a new crypto exchange over 18 months?",
+      "A competitor just copied your flagship feature. What's your strategy?",
+      "How would you decide whether to go freemium or free-trial for a new productivity app?",
+      "Your marketplace has strong supply but weak demand. What's your growth strategy?"
+    ],
+    technical: [
+      "How would you critique the app you use most? What one change would you ship?",
+      "Explain how UPI works to a non-technical stakeholder.",
+      "Design a payments API — what makes it good to build on?",
+      "How would you design a notification system (triggers, channels, settings, delivery guarantees)?",
+      "How does a food-delivery app match orders to delivery partners? Where would you improve it?",
+      "Design a real-time fraud-decisioning service that returns approve/review/reject.",
+      "How would you design a URL shortener, and what trade-offs matter for a PM?",
+      "Explain how a recommendation feed works and where a PM makes the key calls.",
+      "Design a rate limiter for a public API — what would you optimize for?",
+      "How would you design an ETA system for a ride-hailing app?",
+      "Critique the checkout flow of any e-commerce app you know well.",
+      "How does search autocomplete work, and how would you measure its quality?",
+      "Design a system to detect and block repeat fraudsters before account creation.",
+      "How would you design offline support for a note-taking app?",
+      "Explain caching to a business stakeholder and where it would help your product.",
+      "How would you design a file-sharing/collaboration feature like Google Docs comments?",
+      "What are the trade-offs between polling and webhooks for an integration product?",
+      "How would you design a system to send 10M push notifications reliably?"
+    ],
+    hr: [
+      "Tell me about yourself.",
+      "Why are you looking to leave your current role?",
+      "Why do you want to work at this company specifically?",
+      "Where do you see yourself in 5 years?",
+      "What are your biggest strengths as a PM?",
+      "What's your biggest weakness, and what are you doing about it?",
+      "What are your salary expectations?",
+      "Walk me through your resume.",
+      "Why should we hire you for this role?",
+      "What are you looking for in your next role?",
+      "How would your current teammates describe you?",
+      "What's your notice period and availability?",
+      "Why did you move from engineering into product management?",
+      "Tell me about a gap or a short stint on your resume.",
+      "What kind of team and manager do you do your best work with?",
+      "What do you enjoy most, and least, about being a PM?",
+      "Are you interviewing elsewhere / how far along are you?",
+      "What questions do you have for us?",
+      "What motivates you day to day?",
+      "How do you handle work-life balance and pressure?"
+    ],
+    "hiring-manager": [
+      "Walk me through a product you shipped end-to-end. What was the hardest decision?",
+      "Tell me about the most impactful thing you've built and how you measured it.",
+      "Tell me about a product or launch that failed. What did you learn?",
+      "Describe a time you disagreed with engineering (or a senior stakeholder). What happened?",
+      "Tell me about a time you influenced a decision without any formal authority.",
+      "What's the toughest prioritization call you've made, and how did you make it?",
+      "Tell me about a time you used data to change a decision.",
+      "Describe a 0→1 product you built. What was ambiguous and how did you handle it?",
+      "Tell me about a time you had to cut scope under a hard deadline.",
+      "How did you handle a project where things went badly off-track?",
+      "Tell me about a metric you owned and moved. What did you actually do?",
+      "Describe a time you changed your mind based on user or stakeholder input.",
+      "What's a decision you'd make differently today, and why?",
+      "Tell me about a time you had to align multiple teams around one strategy.",
+      "Describe the hardest trade-off you've made between speed and quality.",
+      "Tell me about a time you pushed back on a leader's idea. How did it go?",
+      "What's the most technical problem you've had to reason about as a PM?",
+      "Tell me about a time you turned around an underperforming product or feature."
     ]
-  }
+  },
+
+  // Flagship worked cases the user referenced (theproductfolks-style). Rendered as a featured strip;
+  // 'match' resolves the question's index in its category at render time.
+  featured: [
+    { cid: "problem", match: "Zomato", label: "Zomato — average restaurant rating dropped 10% in Pune", source: "theproductfolks.com" },
+    { cid: "problem", match: "Tata Cliq", label: "Tata Cliq — website bounce rate increased 25%", source: "theproductfolks.com" },
+    { cid: "metrics", match: "daily steps in the Apple Health", label: "Apple Health — you launched a daily-steps feature; measure success", source: "theproductfolks.com" }
+  ],
+
+  // Company / industry-wise prep — the AI generates a full guide per company on demand.
+  companies: [
+    { industry: "Big Tech (FAANG+)", items: [
+      { name: "Google", tests: "Product sense, analytics, 'Googleyness' & leadership" },
+      { name: "Meta", tests: "Product sense (interrupt-heavy), execution, an AI product-sense round" },
+      { name: "Amazon", tests: "16 Leadership Principles — deep behavioural digging, bar-raiser" },
+      { name: "Microsoft", tests: "Product design, collaboration, customer obsession" },
+      { name: "Apple", tests: "Taste, design detail, cross-functional discretion" },
+      { name: "Netflix", tests: "Judgment, metrics, high-context culture fit" }
+    ]},
+    { industry: "Fintech / Payments", items: [
+      { name: "Razorpay", tests: "Take-home case, payments depth, build/buy reasoning" },
+      { name: "PhonePe", tests: "Scale thinking, UPI/payments product sense, market sizing" },
+      { name: "Paytm", tests: "Breadth across lending/payments/commerce, execution" },
+      { name: "CRED", tests: "Design taste, premium-user product sense, metrics" },
+      { name: "Stripe", tests: "Developer-product/API design, technical PM depth" },
+      { name: "Visa / Mastercard", tests: "Payments rails, risk, regulatory reasoning" }
+    ]},
+    { industry: "Quick-commerce / Consumer (India)", items: [
+      { name: "Swiggy", tests: "SQL + a real quick-commerce case; ops-aware product sense" },
+      { name: "Zomato", tests: "RCA on real metrics, marketplace & ratings problems" },
+      { name: "Zepto", tests: "Experimentation/A-B, SQL, delivery-optimization cases" },
+      { name: "Meesho", tests: "Problem-first user empathy; name & calculate metrics" },
+      { name: "Flipkart", tests: "6-page deck pre-round, guesstimates, KPI cases" }
+    ]},
+    { industry: "Ride-hailing / Marketplace", items: [
+      { name: "Uber", tests: "Marketplace metrics, RCA, supply/demand reasoning" },
+      { name: "Ola", tests: "India ops, pricing, driver-side product" },
+      { name: "Airbnb", tests: "Design sense, host/guest two-sided thinking, metrics" }
+    ]},
+    { industry: "SaaS / Dev tools / AI", items: [
+      { name: "Atlassian", tests: "Product sense, prioritization, collaboration" },
+      { name: "Postman", tests: "Developer product sense, API workflows" },
+      { name: "OpenAI / Anthropic", tests: "AI product sense, evals, agentic judgment, safety" },
+      { name: "Databricks", tests: "Technical/data-platform PM depth" }
+    ]}
+  ]
 };
