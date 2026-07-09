@@ -1,0 +1,197 @@
+{
+  "name": "JobSearchOS — AI Job Triage + Human Approval",
+  "meta": {
+    "notes": "STARTER SCAFFOLD — import into n8n, then: (1) set the JobSearchOS base URL in the two HTTP nodes, (2) attach an Anthropic (or OpenAI) credential to the 'AI: draft outreach' node, (3) attach a Telegram Bot credential + your chat id to the approval node, (4) attach SMTP creds to the send node. This is a wiring skeleton, not a production-tested export — verify node versions after import."
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "hours", "hoursInterval": 3 }
+          ]
+        }
+      },
+      "id": "sched-trigger",
+      "name": "Every 3 hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $vars.JOBSEARCHOS_BASE_URL }}/api/scan",
+        "options": {}
+      },
+      "id": "http-scan",
+      "name": "Scan JobSearchOS (scoring stays in my code)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// JobSearchOS returns already-scored postings; keep only strong matches\n// and shape one item per posting for the rest of the workflow.\nconst MIN_SCORE = 80;\nconst jobs = ($input.first().json.jobs) || [];\nreturn jobs\n  .filter(j => (j.score ?? 0) >= MIN_SCORE)\n  .map(j => ({ json: {\n    id: j.id,\n    title: j.title,\n    company: j.company,\n    score: j.score,\n    jd: j.jd || j.description || '',\n    recruiterEmail: j.recruiterEmail || '',\n    breakdown: j.breakdown || {}\n  }}));"
+      },
+      "id": "filter-strong",
+      "name": "Keep matches ≥ 80",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-opus-4-8\",\n  \"max_tokens\": 700,\n  \"system\": \"You are drafting a job application on my behalf. Ground everything in the JD and my profile. Return a short tailored recruiter email and 3 bullets citing the specific JD requirements I match. Do not invent experience.\",\n  \"messages\": [\n    { \"role\": \"user\", \"content\": \"JD for {{ $json.title }} at {{ $json.company }} (match {{ $json.score }}%):\\n\\n{{ $json.jd }}\\n\\nDraft the email and the 3 why-fit bullets.\" }\n  ]\n}",
+        "options": {}
+      },
+      "id": "ai-draft",
+      "name": "AI: draft outreach (grounded on JD)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "notes": "Attach an Anthropic credential (Header Auth: x-api-key). Swap to the OpenAI/AI-Agent node if you prefer. Add your profile/evidence-bank text into the system or user message to fully ground the draft."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pull the draft text out of the LLM response and carry the job fields forward.\nconst ai = $input.first().json;\nconst draft = ai?.content?.[0]?.text || 'DRAFT UNAVAILABLE';\nconst job = $('Keep matches ≥ 80').item.json;\nreturn [{ json: { ...job, draft } }];"
+      },
+      "id": "shape-draft",
+      "name": "Extract draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendAndWait",
+        "chatId": "={{ $vars.TELEGRAM_CHAT_ID }}",
+        "message": "=Strong match ({{ $json.score }}%): *{{ $json.title }}* at *{{ $json.company }}*\n\nDraft outreach:\n{{ $json.draft }}\n\nSend it?",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "buttonApproveLabel": "✅ Approve & send",
+            "buttonDisapproveLabel": "⏭️ Skip"
+          }
+        },
+        "options": {}
+      },
+      "id": "tg-approve",
+      "name": "Telegram: approve before send",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1340, 300],
+      "notes": "Human-in-the-loop gate. Nothing irreversible happens until I tap Approve on my phone."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-approved",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $vars.MY_EMAIL }}",
+        "toEmail": "={{ $json.recruiterEmail }}",
+        "subject": "=Application — {{ $json.title }}",
+        "emailFormat": "text",
+        "text": "={{ $json.draft }}",
+        "options": {}
+      },
+      "id": "send-email",
+      "name": "Send recruiter email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1800, 200],
+      "notes": "Attach SMTP (Gmail app password) credential."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.JOBSEARCHOS_BASE_URL }}/api/mark-status",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"id\": \"{{ $json.id }}\", \"status\": \"Applied\" }",
+        "options": {}
+      },
+      "id": "mark-applied",
+      "name": "Mark Applied (app = source of truth)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2020, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.JOBSEARCHOS_BASE_URL }}/api/mark-status",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"id\": \"{{ $json.id }}\", \"status\": \"Skipped\" }",
+        "options": {}
+      },
+      "id": "mark-skipped",
+      "name": "Mark Skipped",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1800, 420]
+    }
+  ],
+  "connections": {
+    "Every 3 hours": {
+      "main": [[{ "node": "Scan JobSearchOS (scoring stays in my code)", "type": "main", "index": 0 }]]
+    },
+    "Scan JobSearchOS (scoring stays in my code)": {
+      "main": [[{ "node": "Keep matches ≥ 80", "type": "main", "index": 0 }]]
+    },
+    "Keep matches ≥ 80": {
+      "main": [[{ "node": "AI: draft outreach (grounded on JD)", "type": "main", "index": 0 }]]
+    },
+    "AI: draft outreach (grounded on JD)": {
+      "main": [[{ "node": "Extract draft", "type": "main", "index": 0 }]]
+    },
+    "Extract draft": {
+      "main": [[{ "node": "Telegram: approve before send", "type": "main", "index": 0 }]]
+    },
+    "Telegram: approve before send": {
+      "main": [[{ "node": "Approved?", "type": "main", "index": 0 }]]
+    },
+    "Approved?": {
+      "main": [
+        [{ "node": "Send recruiter email", "type": "main", "index": 0 }],
+        [{ "node": "Mark Skipped", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send recruiter email": {
+      "main": [[{ "node": "Mark Applied (app = source of truth)", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}
