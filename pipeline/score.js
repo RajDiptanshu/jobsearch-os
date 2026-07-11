@@ -110,40 +110,59 @@ function scoreRecency(job) {
 }
 
 const WEIGHTS = { title: 0.30, domain: 0.25, skills: 0.15, location: 0.15, experience: 0.10, recency: 0.05 };
+// When there's no JD text (LinkedIn cards etc.) we can't know domain/skills/experience —
+// scoring them as 0/neutral systematically punished those sources ~20 points vs rich-JD
+// sources for the SAME role. Instead: judge only what we can see, and say so via `confidence`.
+const WEIGHTS_THIN = { title: 0.50, domain: 0.10, location: 0.25, recency: 0.15 };
 
 function scoreJob(job, profile) {
   const title = scoreTitle(job, profile);
-  const domain = scoreDomains(job, profile);
+  const domain = scoreDomains(job, profile);      // on thin jobs this scans the title only — real signal, low weight
   const skills = scoreSkills(job, profile);
   const location = scoreLocation(job, profile);
   const experience = scoreExperience(job, profile);
   const recency = scoreRecency(job);
 
-  let total =
-    title.score * WEIGHTS.title +
-    domain.score * WEIGHTS.domain +
-    skills.score * WEIGHTS.skills +
-    location.score * WEIGHTS.location +
-    experience.score * WEIGHTS.experience +
-    recency.score * WEIGHTS.recency;
+  const descLen = (job.description || '').length;
+  const thin = descLen < 80;
+  const confidence = thin ? 'low' : (descLen >= 1200 ? 'high' : 'medium');
+
+  let total;
+  if (thin) {
+    total =
+      title.score * WEIGHTS_THIN.title +
+      domain.score * WEIGHTS_THIN.domain +
+      location.score * WEIGHTS_THIN.location +
+      recency.score * WEIGHTS_THIN.recency;
+  } else {
+    total =
+      title.score * WEIGHTS.title +
+      domain.score * WEIGHTS.domain +
+      skills.score * WEIGHTS.skills +
+      location.score * WEIGHTS.location +
+      experience.score * WEIGHTS.experience +
+      recency.score * WEIGHTS.recency;
+  }
 
   // Hard guards: non-PM titles can't ride high on domain alone
   if (title.score < 30) total = Math.min(total, 38);
   total = Math.round(Math.max(0, Math.min(100, total)));
 
+  const W = thin ? WEIGHTS_THIN : WEIGHTS;
   return {
     total,
+    confidence,                                    // high = full JD analysed · medium = partial · low = title/location only
     breakdown: {
-      title: { score: title.score, weight: WEIGHTS.title, matched: title.matched },
-      domain: { score: domain.score, weight: WEIGHTS.domain },
-      skills: { score: skills.score, weight: WEIGHTS.skills },
-      location: { score: location.score, weight: WEIGHTS.location, label: location.label },
-      experience: { score: experience.score, weight: WEIGHTS.experience, label: experience.label },
-      recency: { score: recency.score, weight: WEIGHTS.recency, label: recency.label }
+      title: { score: title.score, weight: W.title, matched: title.matched },
+      domain: { score: domain.score, weight: W.domain },
+      skills: { score: skills.score, weight: thin ? 0 : WEIGHTS.skills },
+      location: { score: location.score, weight: W.location, label: location.label },
+      experience: { score: experience.score, weight: thin ? 0 : WEIGHTS.experience, label: experience.label },
+      recency: { score: recency.score, weight: W.recency, label: recency.label }
     },
     domains_hit: domain.hits,
     skills_hit: skills.hits,
-    jd_thin: !job.description || job.description.length < 80
+    jd_thin: thin
   };
 }
 

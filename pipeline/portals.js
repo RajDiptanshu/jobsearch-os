@@ -40,10 +40,21 @@ function buildQueries(profile) {
       { keyword: flavor, location: '' }
     ],
     linkedin: [
-      { keywords: titles[0], location: 'Gurugram, Haryana, India' },
-      { keywords: titles[0], location: 'Bengaluru, Karnataka, India' },
-      { keywords: titles[1], location: 'India' },
-      { keywords: flavor, location: 'India' }
+      // Core city queries: NO time filter + 2 pages → catches everything LinkedIn ranks for the city,
+      // not just the last 24h (this was why postings visible on linkedin.com never reached the portal).
+      { keywords: titles[0], location: 'Gurugram, Haryana, India', deep: true, tpr: '' },
+      { keywords: titles[0], location: 'Bengaluru, Karnataka, India', deep: true, tpr: '' },
+      { keywords: titles[0], location: 'Noida, Uttar Pradesh, India', tpr: '' },
+      { keywords: titles[0], location: 'Delhi, India', tpr: '' },
+      { keywords: titles[1], location: 'Gurugram, Haryana, India', tpr: '' },
+      { keywords: titles[1], location: 'Bengaluru, Karnataka, India', tpr: '' },
+      // Remote-India (f_WT=2 = LinkedIn's remote filter), last 7 days
+      { keywords: titles[0], location: 'India', remote: true, tpr: 'r604800' },
+      // Domain-flavored, last 7 days — ALL of them every run (no rotation; coverage beats economy here)
+      { keywords: 'Product Manager Payments', location: 'India', tpr: 'r604800' },
+      { keywords: 'Product Manager Fintech', location: 'India', tpr: 'r604800' },
+      { keywords: 'Product Manager Fraud Risk', location: 'India', tpr: 'r604800' },
+      { keywords: 'AI Product Manager', location: 'India', tpr: 'r604800' }
     ],
     jsearch: [
       `${titles[0]} jobs in Gurugram`,
@@ -210,13 +221,15 @@ async function fetchFoundit(profile) {
 
 // ──────────────────────── LINKEDIN ────────────────────────
 // Public guest endpoints (what linkedin.com serves logged-out visitors). HTML fragments, parsed with regex.
-async function linkedinSearch(q) {
-  const params = new URLSearchParams({ keywords: q.keywords, location: q.location, f_TPR: 'r86400', start: '0' });
+async function linkedinSearch(q, start = 0) {
+  const params = new URLSearchParams({ keywords: q.keywords, location: q.location, start: String(start) });
+  if (q.tpr) params.set('f_TPR', q.tpr);           // '' = no time filter (all ages, LinkedIn relevance-ranked)
+  if (q.remote) params.set('f_WT', '2');           // LinkedIn's remote-workplace filter
   const html = await fetchText(`https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?${params}`);
   const out = [];
   // each card: <a class="base-card__full-link" href="...">…<span class="sr-only"> Title </span>
   const cards = html.split(/base-card__full-link/).slice(1);
-  for (const c of cards.slice(0, 15)) {
+  for (const c of cards.slice(0, 25)) {
     const href = (c.match(/href="([^"]+)"/) || [])[1];
     const title = (c.match(/sr-only">\s*([\s\S]*?)\s*<\/span>/) || [])[1];
     const company = (c.match(/base-search-card__subtitle[^>]*>\s*<a[^>]*>\s*([\s\S]*?)\s*<\/a>/) || [])[1]
@@ -243,10 +256,17 @@ async function linkedinSearch(q) {
 async function fetchLinkedIn(profile) {
   const queries = buildQueries(profile).linkedin;
   const all = [];
+  let failed = 0, attempted = 0;
   for (const q of queries) {
-    all.push(...await linkedinSearch(q));
-    await sleep(jitter(900));
+    const pages = q.deep ? [0, 25] : [0];          // deep queries pull page 2 as well
+    for (const start of pages) {
+      attempted++;
+      try { all.push(...await linkedinSearch(q, start)); }
+      catch (e) { failed++; }                       // one 429 must never kill the whole source
+      await sleep(jitter(900));
+    }
   }
+  if (!all.length && failed === attempted) throw new Error(`all ${attempted} queries failed (rate-limited?)`);
   return all;
 }
 
@@ -287,11 +307,13 @@ async function fetchJSearch(env, profile) {
   return out;
 }
 
-// Enrich new thin LinkedIn jobs with full JDs (capped per run to stay under the radar)
-async function enrichNewJobs(newJobs, caps = { linkedin: 8 }) {
+// Enrich thin LinkedIn jobs with full JDs (capped per run to stay under the radar).
+// Pass new jobs first, then existing thin ones — new hits get priority within the cap.
+async function enrichNewJobs(newJobs, caps = { linkedin: 18 }, existingThin = []) {
   const enriched = [];
-  const liTargets = newJobs.filter(j => j.source === 'linkedin' && (j.description || '').length < 400).slice(0, caps.linkedin);
-  for (const job of liTargets) {
+  const isThinLi = j => j.source === 'linkedin' && (j.description || '').length < 400;
+  const targets = [...newJobs.filter(isThinLi), ...existingThin.filter(isThinLi)].slice(0, caps.linkedin);
+  for (const job of targets) {
     try { const d = await linkedinDetail(job); if (d) { job.description = d.slice(0, 20000); enriched.push(job.id); } } catch { /* fail-soft */ }
     await sleep(jitter(1100));
   }

@@ -9,7 +9,7 @@ const { DATA, loadJson, saveJson, loadEnv } = require('./pipeline/lib');
 const { suggestForJob } = require('./pipeline/suggest');
 const { scoreJob } = require('./pipeline/score');
 const { generateApplication, sendApplicationEmail } = require('./pipeline/apply');
-const { loadResume, tailorResume, resumePdf } = require('./pipeline/resume');
+const { loadResume, tailorResume, resumePdf, resumeDocHtml } = require('./pipeline/resume');
 const { aiConfig } = require('./pipeline/ai');
 
 const env = loadEnv();
@@ -221,6 +221,14 @@ const server = http.createServer(async (req, res) => {
         const markdown = await tailorResume(job, env);
         return json(res, 200, { ok: true, markdown, job: { title: job.title, company: job.company } });
       } catch (e) { return json(res, 502, { ok: false, error: e.message }); }
+    }
+
+    if (p === '/api/resume/doc' && req.method === 'POST') {
+      const body = await readBody(req);
+      if (!body.markdown || body.markdown.length < 100) return json(res, 400, { error: 'markdown required' });
+      const fname = (body.filename || 'cv-draft.doc').replace(/[^\w.\- ]+/g, '').slice(0, 80) || 'cv-draft.doc';
+      res.writeHead(200, { 'Content-Type': 'application/msword', 'Content-Disposition': `attachment; filename="${fname}"`, 'Cache-Control': 'no-store' });
+      return res.end(resumeDocHtml(String(body.markdown).slice(0, 60000)));
     }
 
     if (p === '/api/resume/pdf' && req.method === 'POST') {

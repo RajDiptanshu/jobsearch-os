@@ -1,0 +1,130 @@
+{
+  "name": "JobSearchOS — 3-hourly pipeline",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "hours", "hoursInterval": 3 }] } },
+      "id": "cron",
+      "name": "Every 3 hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 400]
+    },
+    {
+      "parameters": { "url": "=https://boards-api.greenhouse.io/v1/boards/razorpaysoftwareprivatelimited/jobs?content=true", "options": {} },
+      "id": "greenhouse",
+      "name": "ATS boards (Greenhouse/Lever/Ashby)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [520, 220],
+      "notes": "Fan out one HTTP node (or a loop over data/watchlist.json) per company board. Documented public JSON APIs — full JD text."
+    },
+    {
+      "parameters": { "url": "=https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=Product%20Manager&location=Gurugram%2C%20Haryana%2C%20India&start=0", "options": { "response": { "response": { "responseFormat": "text" } } } },
+      "id": "linkedin",
+      "name": "LinkedIn guest jobs (HTML)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [520, 380],
+      "notes": "Reverse-engineered guest endpoint. Returns HTML cards → parse in the Normalize Code node. Second call fetches full JD by job-id (enrichment)."
+    },
+    {
+      "parameters": { "operation": "getAll", "filters": { "q": "from:(linkedin.com OR naukri.com OR indeed.com OR iimjobs.com) newer_than:3d" }, "options": {} },
+      "id": "gmail",
+      "name": "Gmail — job-alert emails",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [520, 540],
+      "notes": "Native Gmail node replaces the custom IMAP code. Parse title/company from the subject line in the Normalize node."
+    },
+    {
+      "parameters": { "mode": "combine", "combineBy": "combineAll", "options": {} },
+      "id": "merge",
+      "name": "Merge all sources",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [820, 400]
+    },
+    {
+      "parameters": { "jsCode": "// Reuse the pipeline's normalize + dedupe logic (from lib.js / portals.js).\n// Output one item per unique job in the common schema:\n// { id, title, company, location, url, posted_at, source, description }\nconst seen = new Set();\nconst out = [];\nfor (const item of $input.all()) {\n  const j = item.json;\n  const key = (j.url || `${j.company}|${j.title}|${j.location}`).toLowerCase();\n  if (seen.has(key)) continue;\n  seen.add(key);\n  out.push({ json: j });\n}\nreturn out;" },
+      "id": "normalize",
+      "name": "Normalize + dedupe (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1040, 400],
+      "notes": "Paste the same JS used by the app (stripHtml, makeJob, dedupe). This is where reverse-engineered LinkedIn/Shine parsing lives — n8n can't bypass bot-protection, so keep parsing as code."
+    },
+    {
+      "parameters": { "jsCode": "// Weighted multi-factor scoring + confidence (port of score.js).\n// Attach j.score = { total, confidence, breakdown } to each item.\nreturn $input.all();" },
+      "id": "score",
+      "name": "Score + confidence (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1260, 400]
+    },
+    {
+      "parameters": { "conditions": { "options": { "caseSensitive": true }, "conditions": [{ "leftValue": "={{ $json.score.total }}", "rightValue": 65, "operator": { "type": "number", "operation": "gte" } }], "combinator": "and" } },
+      "id": "filter",
+      "name": "Keep score ≥ 65",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [1480, 400]
+    },
+    {
+      "parameters": { "method": "POST", "url": "https://api.anthropic.com/v1/messages", "sendHeaders": true, "headerParameters": { "parameters": [{ "name": "x-api-key", "value": "={{ $credentials.anthropicApi }}" }, { "name": "anthropic-version", "value": "2023-06-01" }] }, "sendBody": true, "specifyBody": "json", "jsonBody": "={\n  \"model\": \"claude-sonnet-5\",\n  \"max_tokens\": 3000,\n  \"system\": \"Rewrite the candidate's CV for this JD, truthfully (reorder/reword, never fabricate).\",\n  \"messages\": [{\"role\":\"user\",\"content\": \"JD: {{ $json.description }}\\n\\nCV: <master cv here>\"}]\n}", "options": {} },
+      "id": "tailor",
+      "name": "AI — tailor CV per JD",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1700, 320],
+      "notes": "Anthropic (or OpenAI) call. Output the tailored CV markdown → convert to .doc/.pdf in a Code node or an external render endpoint."
+    },
+    {
+      "parameters": { "operation": "append", "documentId": { "__rl": true, "mode": "list", "value": "" }, "sheetName": { "__rl": true, "mode": "list", "value": "" }, "columns": { "mappingMode": "autoMapInputData", "value": {} }, "options": {} },
+      "id": "store",
+      "name": "Persist → Google Sheets / Notion / Postgres",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1700, 480],
+      "notes": "Native node — swapping the store is a node change, not a code change. This also gives cross-device sync for free."
+    },
+    {
+      "parameters": { "sendTo": "you@gmail.com", "subject": "=🎯 {{ $items().length }} new matches — top {{ $json.score.total }}% {{ $json.title }} @ {{ $json.company }}", "message": "See attached tailored CV drafts + apply links.", "options": {} },
+      "id": "digest",
+      "name": "Gmail — send digest + CV drafts",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1940, 400]
+    },
+    {
+      "parameters": { "conditions": { "options": {}, "conditions": [{ "leftValue": "={{ $json.score.total }}", "rightValue": 85, "operator": { "type": "number", "operation": "gte" } }], "combinator": "and" } },
+      "id": "hotfilter",
+      "name": "≥ 85% match?",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [1940, 560]
+    },
+    {
+      "parameters": { "text": "=🔥 Strong match: {{ $json.title }} @ {{ $json.company }} — {{ $json.score.total }}%\n{{ $json.url }}" },
+      "id": "slack",
+      "name": "Slack/Telegram — instant push",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [2160, 560]
+    }
+  ],
+  "connections": {
+    "Every 3 hours": { "main": [[{ "node": "ATS boards (Greenhouse/Lever/Ashby)", "type": "main", "index": 0 }, { "node": "LinkedIn guest jobs (HTML)", "type": "main", "index": 0 }, { "node": "Gmail — job-alert emails", "type": "main", "index": 0 }]] },
+    "ATS boards (Greenhouse/Lever/Ashby)": { "main": [[{ "node": "Merge all sources", "type": "main", "index": 0 }]] },
+    "LinkedIn guest jobs (HTML)": { "main": [[{ "node": "Merge all sources", "type": "main", "index": 0 }]] },
+    "Gmail — job-alert emails": { "main": [[{ "node": "Merge all sources", "type": "main", "index": 0 }]] },
+    "Merge all sources": { "main": [[{ "node": "Normalize + dedupe (Code)", "type": "main", "index": 0 }]] },
+    "Normalize + dedupe (Code)": { "main": [[{ "node": "Score + confidence (Code)", "type": "main", "index": 0 }]] },
+    "Score + confidence (Code)": { "main": [[{ "node": "Keep score ≥ 65", "type": "main", "index": 0 }]] },
+    "Keep score ≥ 65": { "main": [[{ "node": "AI — tailor CV per JD", "type": "main", "index": 0 }, { "node": "Persist → Google Sheets / Notion / Postgres", "type": "main", "index": 0 }]] },
+    "AI — tailor CV per JD": { "main": [[{ "node": "Gmail — send digest + CV drafts", "type": "main", "index": 0 }]] },
+    "Gmail — send digest + CV drafts": { "main": [[{ "node": "≥ 85% match?", "type": "main", "index": 0 }]] },
+    "≥ 85% match?": { "main": [[{ "node": "Slack/Telegram — instant push", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "description": "Importable starter workflow that mirrors JobSearchOS in n8n: cron → parallel source fetch (ATS APIs + LinkedIn + Gmail) → merge/dedupe/score (Code nodes reusing the app's JS) → filter → AI CV tailoring → persist to a DB node → email digest → Slack push for strong matches. Reverse-engineered scraping stays in Code nodes; n8n owns scheduling, fan-out, retries, persistence, and notifications." }
+}

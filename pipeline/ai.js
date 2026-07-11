@@ -33,7 +33,9 @@ async function aiComplete({ system, user, env, maxTokens = 3000 }) {
       });
       if (!res.ok) throw new Error(`Anthropic HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
       const d = await res.json();
-      text = d.content && d.content[0] && d.content[0].text;
+      // claude-sonnet-5 emits a "thinking" content block first (extended thinking on by default),
+      // so join ALL text-type blocks rather than assuming content[0] is the answer.
+      text = (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
     }
     if (!text) throw new Error('empty AI response');
     return text;

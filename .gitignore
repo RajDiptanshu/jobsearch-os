@@ -8,6 +8,7 @@ node_modules/
 
 # Personal data / PII — resume, comp, contact details
 data/profile.json
+data/resume_current.md
 
 # Live scraped job data & run history — real (possibly copyrighted) scraped content
 data/jobs.json

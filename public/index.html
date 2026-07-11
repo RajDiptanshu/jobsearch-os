@@ -256,6 +256,7 @@
     <textarea id="tailorMd" spellcheck="false" style="flex:1;margin:14px 18px 0;background:var(--panel-2);border:1px solid var(--line-bright);border-radius:12px;color:var(--text);font:12.5px/1.6 Consolas,monospace;padding:14px;resize:none;outline:none" placeholder="Your tailored resume will appear here — edit anything before exporting."></textarea>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px 18px">
       <button class="primary" id="tailorPdfBtn" onclick="downloadTailorPdf()" disabled>⬇ Convert to PDF</button>
+      <button class="primary" id="tailorDocBtn" onclick="downloadTailorDoc()" disabled style="background:linear-gradient(140deg,#5b93d6,#3b6ea8);color:#0a1420">📝 Word draft (.doc)</button>
       <button class="status" style="cursor:pointer" id="tailorCopyBtn" onclick="copyTailorMd()" disabled>📋 Copy markdown</button>
       <button class="status" style="cursor:pointer" id="tailorRegenBtn" onclick="regenTailor()" disabled>↻ Regenerate</button>
       <span style="flex:1"></span>
@@ -278,6 +279,13 @@ document.querySelectorAll('#statusChips .chip').forEach(c => c.onclick = () => {
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.style.display='block'; clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none', 2800); }
 function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function ringColor(n){ return n>=85?'#c9a86a':n>=70?'#34d399':n>=55?'#e0a94b':'#5a6472'; }
+function confBadge(s){
+  const c = s && s.confidence;
+  if(c==='high') return ' <span class="badge" title="Full JD analysed — all 6 factors scored" style="border-color:rgba(16,185,129,.3);color:var(--accent-bright)">high confidence</span>';
+  if(c==='medium') return ' <span class="badge" title="Partial JD — most factors scored" style="border-color:rgba(224,169,75,.3);color:var(--amber)">med confidence</span>';
+  if(c==='low') return ' <span class="badge" title="Title + location only (no JD text yet) — open the posting or wait for enrichment" style="opacity:.8">low confidence · title only</span>';
+  return '';
+}
 function timeAgo(iso){ if(!iso) return '—'; const s=(Date.now()-new Date(iso).getTime())/1000; if(s<3600) return Math.max(1,Math.round(s/60))+'m ago'; if(s<86400) return Math.round(s/3600)+'h ago'; return Math.round(s/86400)+'d ago'; }
 function ring(score){ const r=26,c=2*Math.PI*r,off=c*(1-score/100),col=ringColor(score);
   return `<div class="ring"><svg width="60" height="60"><circle cx="30" cy="30" r="${r}" fill="none" stroke="#1a1f27" stroke-width="5"/><circle cx="30" cy="30" r="${r}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}"/></svg><div class="val" style="color:${col}">${score}</div></div>`; }
@@ -344,7 +352,7 @@ function jobCard(j){
       <div style="min-width:0">
         <h3><a href="${esc(j.apply_url||j.url)}" target="_blank" rel="noopener">${esc(j.title)}</a></h3>
         <div class="meta"><b>${esc(j.company)}</b> · ${esc(j.location||'—')}${j.salary?' · <b>'+esc(j.salary)+'</b>':''}</div>
-        <div class="meta">posted ${j.posted_at?timeAgo(j.posted_at):'—'} · found ${timeAgo(j.discovered_at)} · <span class="badge src">${esc(j.source)}</span>${isNew?' <span class="badge new">NEW</span>':''}${top?' <span class="badge gold">TOP MATCH</span>':''}${appBadge}</div>
+        <div class="meta">posted ${j.posted_at?timeAgo(j.posted_at):'—'} · found ${timeAgo(j.discovered_at)} · <span class="badge src">${esc(j.source)}</span>${confBadge(s)}${isNew?' <span class="badge new">NEW</span>':''}${top?' <span class="badge gold">TOP MATCH</span>':''}${appBadge}</div>
         <div class="badges">${domains}${skills}</div>
       </div>
       <div class="right">
@@ -418,7 +426,17 @@ async function runNow(){ $('runBtn').disabled=true; $('runBtn').textContent='⏳
 
 /* ---------- resume tailoring ---------- */
 let tailorCtx = null;
-function tailorButtons(enabled){ ['tailorPdfBtn','tailorCopyBtn','tailorRegenBtn'].forEach(i=>$(i).disabled=!enabled); }
+function tailorButtons(enabled){ ['tailorPdfBtn','tailorDocBtn','tailorCopyBtn','tailorRegenBtn'].forEach(i=>$(i).disabled=!enabled); }
+async function downloadTailorDoc(){
+  const md = $('tailorMd').value.trim();
+  if(md.length<100){ toast('Nothing to export yet'); return; }
+  const fname = 'Diptanshu_CV_'+(tailorCtx.company||'Draft').replace(/[^\w]+/g,'_').replace(/^_+|_+$/g,'')+'.doc';
+  const r = await fetch('/api/resume/doc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({markdown:md,filename:fname})});
+  if(!r.ok){ toast('Word export failed'); return; }
+  const blob = await r.blob();
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click(); URL.revokeObjectURL(a.href);
+  toast('⬇ '+fname+' — opens in Word, copy-paste ready');
+}
 async function openTailor(id){
   tailorCtx = { id, company:'' };
   $('tailorModal').style.display='block';

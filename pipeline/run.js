@@ -9,6 +9,10 @@ const { suggestForJob } = require('./suggest');
 const { sendDigest } = require('./email');
 const { enrichNewJobs } = require('./portals');
 const { generateApplication, sendApplicationEmail } = require('./apply');
+const { tailorResume, resumeDocHtml } = require('./resume');
+const fs = require('fs');
+const path = require('path');
+const { DATA } = require('./lib');
 
 const EMAIL_MIN_SCORE = 55;   // only email the digest for matches at/above this
 const KEEP_MIN_SCORE = 25;    // don't store obvious noise
@@ -53,11 +57,18 @@ async function main() {
     pendingNew.push(job);
   }
 
-  // Enrich promising thin portal results (Naukri/LinkedIn) with full JDs, then score everything
+  // Enrich promising thin portal results with full JDs (new first, then best existing thin ones), then score
   const preScored = pendingNew.map(j => ({ j, s: scoreJob(j, profile).total })).sort((a, b) => b.s - a.s).map(x => x.j);
+  const existingThin = store.jobs
+    .filter(j => j.source === 'linkedin' && (j.description || '').length < 400 && !['hidden', 'rejected'].includes(j.status))
+    .sort((a, b) => (b.score?.total || 0) - (a.score?.total || 0));
   try {
-    const enrichedIds = await enrichNewJobs(preScored);
-    if (enrichedIds.length) console.log(`[run] enriched ${enrichedIds.length} portal JDs (naukri/linkedin)`);
+    const enrichedIds = await enrichNewJobs(preScored, undefined, existingThin);
+    if (enrichedIds.length) console.log(`[run] enriched ${enrichedIds.length} LinkedIn JDs`);
+    // existing store jobs that just got a real JD need fresh scores + suggestions
+    for (const j of existingThin) {
+      if (enrichedIds.includes(j.id)) { j.score = scoreJob(j, profile); j.suggestions = suggestForJob(j, profile); }
+    }
   } catch (e) { console.error('[run] enrichment skipped:', e.message); }
 
   const newJobs = [];
@@ -138,9 +149,35 @@ async function main() {
     .sort((a, b) => (b.score?.total || 0) - (a.score?.total || 0))
     .slice(0, MAX_EMAIL_JOBS);
 
+  // Tailored CV drafts (.doc) for the digest — the "copy-paste ready" deliverable.
+  // Needs an AI key in .env; capped per run; archived to data/outbox/drafts/.
+  let cvDrafts = [];
+  const draftsOn = env.ATTACH_CV_DRAFTS !== 'false';
+  const hasAiKey = !!((env.ANTHROPIC_API_KEY || '').trim() || (env.OPENAI_API_KEY || '').trim());
+  if (!noEmail && draftsOn && hasAiKey && emailable.length) {
+    const targets = emailable
+      .filter(j => (j.score?.total || 0) >= +(env.CV_DRAFT_MIN_SCORE || 65))
+      .slice(0, +(env.CV_DRAFT_MAX_PER_RUN || 3));
+    for (const j of targets) {
+      try {
+        console.log(`[run] tailoring CV draft for ${j.company}…`);
+        const mdText = await tailorResume(j, env);
+        const doc = resumeDocHtml(mdText);
+        const fname = `Diptanshu_CV_${(j.company || 'draft').replace(/[^\w]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40)}.doc`;
+        const dir = path.join(DATA, 'outbox', 'drafts');
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, fname), doc, 'utf8');
+        cvDrafts.push({ filename: fname, content: doc, contentType: 'application/msword' });
+      } catch (e) { console.error(`[run] CV draft failed for ${j.company}: ${e.message}`); }
+    }
+    if (cvDrafts.length) console.log(`[run] ${cvDrafts.length} tailored CV draft(s) ready to attach`);
+  } else if (!noEmail && draftsOn && !hasAiKey && emailable.length) {
+    console.log('[run] CV drafts skipped — no ANTHROPIC_API_KEY/OPENAI_API_KEY in .env');
+  }
+
   if (!noEmail && emailable.length) {
     console.log(`[run] emailing digest of ${emailable.length} matches…`);
-    const res = await sendDigest(emailable, runInfo, profile, env);
+    const res = await sendDigest(emailable, runInfo, profile, env, cvDrafts);
     runInfo.email = res;
     if (res.sent) for (const j of emailable) j.emailed_at = runInfo.at;
     console.log(res.sent ? `[run] email sent to ${res.to}` : `[run] email not sent: ${res.reason} (archived: ${res.archived || 'n/a'})`);

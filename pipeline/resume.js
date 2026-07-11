@@ -7,7 +7,11 @@ const fs = require('fs');
 const path = require('path');
 const { aiComplete } = require('./ai');
 
-const DEFAULT_RESUME = path.join(__dirname, '..', '..', 'Career_Switch_2026', '09_Resume', 'master_resume.md');
+// Prefer the user's ACTUAL current CV (converted from Diptanshu_PM.pdf) so tailored drafts
+// are copy-paste compatible with what they really send out; fall back to the old master.
+const DEFAULT_RESUME = fs.existsSync(path.join(__dirname, '..', 'data', 'resume_current.md'))
+  ? path.join(__dirname, '..', 'data', 'resume_current.md')
+  : path.join(__dirname, '..', '..', 'Career_Switch_2026', '09_Resume', 'master_resume.md');
 
 function loadResume(env) {
   const p = env.RESUME_MD_PATH && fs.existsSync(env.RESUME_MD_PATH) ? env.RESUME_MD_PATH : DEFAULT_RESUME;
@@ -93,6 +97,26 @@ function resumeHtml(md) {
   </style></head><body>${mdToHtml(md)}</body></html>`;
 }
 
+// Word-compatible .doc export (HTML that MS Word opens natively) — copy-paste friendly draft.
+function resumeDocHtml(md) {
+  return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"><title>CV Draft</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
+<style>
+  @page { size: A4; margin: 1.5cm 1.6cm; }
+  body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1a2330; line-height: 1.35; }
+  h1 { font-size: 18pt; color: #0d3b2e; margin: 0 0 2pt; }
+  .contact { font-size: 9pt; color: #445264; border-bottom: 1.5pt solid #0f9d6e; padding-bottom: 4pt; margin-bottom: 8pt; }
+  h2 { font-size: 11pt; text-transform: uppercase; letter-spacing: 1pt; color: #0f9d6e; margin: 10pt 0 3pt; border-bottom: .75pt solid #dde4ec; padding-bottom: 2pt; }
+  h3 { font-size: 10.5pt; margin: 7pt 0 1pt; color: #14202e; }
+  .rolegroup { font-size: 9.5pt; font-style: italic; color: #52606f; margin: 5pt 0 2pt; }
+  p { margin: 2pt 0; }
+  ul { margin: 2pt 0 4pt; padding-left: 14pt; }
+  li { margin: 1.5pt 0; }
+  b { color: #10202f; }
+</style></head><body>${mdToHtml(md)}</body></html>`;
+}
+
 async function resumePdf(markdown) {
   let pw;
   try { pw = require('playwright'); }
@@ -105,4 +129,4 @@ async function resumePdf(markdown) {
   } finally { await browser.close(); }
 }
 
-module.exports = { loadResume, tailorResume, resumePdf, resumeHtml };
+module.exports = { loadResume, tailorResume, resumePdf, resumeHtml, resumeDocHtml };

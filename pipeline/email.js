@@ -24,7 +24,7 @@ function jobCardHtml(job) {
       </td>
       <td align="right" valign="top" style="white-space:nowrap">
         <div style="font-size:22px;font-weight:800;color:${scoreColor(s.total)}">${s.total}%</div>
-        <div style="font-size:10px;color:#9ca3af">MATCH</div>
+        <div style="font-size:10px;color:#9ca3af">MATCH · ${(s.confidence || 'med').toUpperCase()} CONF</div>
       </td>
     </tr></table>
     <div style="margin-top:8px">${chips}</div>
@@ -42,9 +42,10 @@ function jobCardHtml(job) {
   </div>`;
 }
 
-function buildDigestHtml(newJobs, runInfo, profile) {
+function buildDigestHtml(newJobs, runInfo, profile, draftCount = 0) {
   const top = newJobs.slice().sort((a, b) => (b.score?.total || 0) - (a.score?.total || 0));
   const best = top[0];
+  const draftsBanner = draftCount ? `<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:12px 16px;margin:14px 0 0;font-size:13px;color:#065f46">📎 <b>${draftCount} tailored CV draft${draftCount === 1 ? '' : 's'} attached</b> — your current CV rewritten for the top match${draftCount === 1 ? '' : 'es'} below. Open in Word, review/tweak, save as PDF, apply.</div>` : '';
   return `<!doctype html><html><body style="margin:0;background:#eef1f0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif">
   <div style="max-width:680px;margin:0 auto;padding:20px">
     <div style="background:linear-gradient(150deg,#0d1512 0%,#08090c 100%);border:1px solid #1c2a24;border-radius:16px;padding:22px;color:#fff">
@@ -52,6 +53,7 @@ function buildDigestHtml(newJobs, runInfo, profile) {
       <div style="font-size:13px;color:#9fb1c0;margin-top:5px">Scanned ${new Date(runInfo.at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST · ${runInfo.sources_ok}/${runInfo.sources_total} sources · Best: <b style="color:#c9a86a">${best ? best.score.total + '% — ' + esc(best.title) + ' @ ' + esc(best.company) : '—'}</b></div>
       <div style="font-size:12px;color:#7c8896;margin-top:7px">Dashboard: <a href="http://localhost:${runInfo.port || 4321}" style="color:#34d399">http://localhost:${runInfo.port || 4321}</a></div>
     </div>
+    ${draftsBanner}
     ${top.map(jobCardHtml).join('')}
     <div style="font-size:11px;color:#9ca3af;text-align:center;padding:16px">
       JobSearchOS · automated hourly scan for ${esc(profile.identity.name)} · profile: PM / fraud-risk-payments / GenAI · ${esc(profile.identity.location)}
@@ -67,9 +69,9 @@ function archiveDigest(html) {
   return file;
 }
 
-async function sendDigest(newJobs, runInfo, profile, env) {
+async function sendDigest(newJobs, runInfo, profile, env, attachments = []) {
   if (!newJobs.length) return { sent: false, reason: 'no new jobs', archived: null };
-  const html = buildDigestHtml(newJobs, runInfo, profile);
+  const html = buildDigestHtml(newJobs, runInfo, profile, attachments.length);
   const archived = archiveDigest(html);
   const best = newJobs.slice().sort((a, b) => (b.score?.total || 0) - (a.score?.total || 0))[0];
   const subject = `🎯 ${newJobs.length} new job match${newJobs.length === 1 ? '' : 'es'} — top: ${best.score?.total || '?'}% ${best.title} @ ${best.company}`;
@@ -92,8 +94,8 @@ async function sendDigest(newJobs, runInfo, profile, env) {
       : { service: 'gmail', auth: { user, pass } }
   );
   try {
-    await transporter.sendMail({ from: `"JobSearchOS" <${user}>`, to, subject, html });
-    return { sent: true, to, archived, subject };
+    await transporter.sendMail({ from: `"JobSearchOS" <${user}>`, to, subject, html, attachments });
+    return { sent: true, to, archived, subject, drafts: attachments.length };
   } catch (e) {
     return { sent: false, reason: `send failed: ${e.message}`, archived, subject };
   }
