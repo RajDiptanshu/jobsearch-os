@@ -31,8 +31,22 @@ async function main() {
   const byKey = new Map(store.jobs.map(j => [`${(j.company || '').toLowerCase()}|${(j.title || '').toLowerCase()}|${(j.location || '').toLowerCase()}`, j]));
 
   console.log('[run] fetching sources…');
-  const { jobs: fetched, health } = await fetchAll(env);
-  console.log(`[run] fetched ${fetched.length} PM-relevant postings from ${health.filter(h => h.ok).length}/${health.length} sources`);
+  const { jobs: fetchedAll, health } = await fetchAll(env);
+
+  // ── FRESHNESS: keep only postings from the last N hours (default 48). ──
+  // Jobs whose source gives no posted_at are kept the FIRST time we see them
+  // (they're genuinely new to us; dedupe below stops them re-appearing).
+  const MAX_AGE_HOURS = +(env.FETCH_MAX_AGE_HOURS || 48);
+  const ageCutoff = Date.now() - MAX_AGE_HOURS * 3600 * 1000;
+  const knownIds = new Set(store.jobs.map(j => j.id));
+  const knownUrls = new Set(store.jobs.filter(j => j.url).map(j => j.url));
+  const fetched = fetchedAll.filter(j => {
+    const t = j.posted_at ? new Date(j.posted_at).getTime() : NaN;
+    if (!isNaN(t)) return t >= ageCutoff;                       // has a date → must be within window
+    return !(knownIds.has(j.id) || knownUrls.has(j.url));       // undated → only if we've never stored it
+  });
+  const stale = fetchedAll.length - fetched.length;
+  console.log(`[run] fetched ${fetchedAll.length} PM-relevant postings from ${health.filter(h => h.ok).length}/${health.length} sources — ${fetched.length} within ${MAX_AGE_HOURS}h (dropped ${stale} stale/older)`);
 
   const pendingNew = [];
   let updated = 0;

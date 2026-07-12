@@ -163,16 +163,6 @@
     <div class="kpi"><div class="n" id="kInterview">–</div><div class="l">Interviews</div></div>
   </div>
 
-  <!-- APPLY QUEUE -->
-  <div class="queue empty" id="queue">
-    <div class="queue-head">
-      <h3>✦ Apply Queue</h3>
-      <span class="tag" id="queueSummary" style="color:var(--muted);font-size:12px"></span>
-      <span class="mode" id="queueMode"></span>
-    </div>
-    <div id="queueList"></div>
-  </div>
-
   <div class="controls">
     <input type="text" id="q" placeholder="Search title, company, JD text… (payments, fraud, UPI, GenAI)" oninput="debouncedLoad()">
     <label>Min match <b id="msVal">40</b>%</label>
@@ -291,46 +281,33 @@ function timeAgo(iso){ if(!iso) return '—'; const s=(Date.now()-new Date(iso).
 function ring(score){ const r=26,c=2*Math.PI*r,off=c*(1-score/100),col=ringColor(score);
   return `<div class="ring"><svg width="60" height="60"><circle cx="30" cy="30" r="${r}" fill="none" stroke="#1a1f27" stroke-width="5"/><circle cx="30" cy="30" r="${r}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}"/></svg><div class="val" style="color:${col}">${score}</div></div>`; }
 
-/* ---------- Apply Queue ---------- */
-async function loadQueue(){
-  const r = await fetch('/api/queue'); const q = await r.json();
-  const box = $('queue');
-  const items = q.actionable || [];
-  if(!items.length){ box.classList.add('empty'); return; }
-  box.classList.remove('empty');
-  $('queueSummary').textContent = `${q.counts.actionable} ready · ${q.counts.email_ready} emailable · ${q.counts.portal} portal · ${q.counts.sent} sent`;
-  $('queueList').innerHTML = items.map(qItem).join('');
-}
-function qItem(j){
-  const a = j.application; const email = a.channel==='email';
-  const acts = email
-    ? `<button class="primary" style="padding:7px 13px;font-size:12px" onclick="sendApp('${j.id}')">Send email →</button>
-       <button class="qmini" onclick="toggleQ('${j.id}')">preview / edit</button>
-       <button class="qmini" onclick="skipApp('${j.id}')">skip</button>`
-    : `<a href="${esc(a.apply_url||j.url)}" target="_blank" rel="noopener"><button class="primary" style="padding:7px 13px;font-size:12px">Open & apply →</button></a>
-       <button class="qmini" onclick="toggleQ('${j.id}')">copy email draft</button>
-       <button class="qmini" onclick="markApplied('${j.id}')">mark applied</button>
+/* ---------- Application actions (now inline on each job card) ---------- */
+function appBlock(j){
+  const a = j.application; if(!a) return '';
+  const email = a.channel==='email';
+  const sent = a.status==='sent';
+  const chan = email ? ('📧 email → '+esc(a.recruiter_email||'—')) : '🔗 portal apply';
+  const hasDraft = !!(a.subject || a.body);
+  const draft = hasDraft ? `<div class="qpreview open" id="qp-${j.id}"><div class="subj">Subject: ${esc(a.subject||'')}</div><pre>${esc(a.body||'')}</pre></div>` : '';
+  const btns = sent
+    ? `<span class="badge applied">✓ applied${a.sent_at?' · '+timeAgo(a.sent_at):''}</span>`
+    : `${email?`<button class="primary" style="padding:7px 13px;font-size:12px" onclick="sendApp('${j.id}')">Send email →</button>`:''}
+       ${hasDraft?`<button class="qmini" onclick="copyEmailDraft('${j.id}')">📋 copy email draft</button>`:''}
+       <button class="qmini" onclick="markApplied('${j.id}')">✓ mark applied</button>
        <button class="qmini" onclick="skipApp('${j.id}')">skip</button>`;
-  return `<div class="qitem" id="q-${j.id}">
-    <div class="body">
-      <div class="role">${esc(j.title)} <span style="color:${ringColor(j.score)};font-weight:700">· ${j.score}%</span></div>
-      <div class="sub">${esc(j.company)} · ${esc(j.location||'—')}</div>
-      <span class="channel ${email?'email':'portal'}">${email?'📧 email → '+esc(a.recruiter_email):'🔗 portal apply'}</span>
-      <div class="qpreview" id="qp-${j.id}">
-        <div class="subj">Subject: ${esc(a.subject)}</div>
-        <pre>${esc(a.body)}</pre>
-        <button class="qmini" style="margin-top:8px" onclick="navigator.clipboard.writeText(document.querySelector('#qp-${j.id} pre').textContent).then(()=>toast('Email draft copied'))">📋 copy body</button>
-        ${!email?`<div class="qedit"><input id="recr-${j.id}" placeholder="recruiter@company.com — add to enable email send"><button class="ghost" onclick="setRecruiter('${j.id}')">Save & enable email</button></div>`:''}
-      </div>
-    </div>
-    <div class="acts">${acts}</div>
+  const recr = (!email && !sent) ? `<div class="qedit" style="margin-top:8px"><input id="recr-${j.id}" placeholder="recruiter@company.com — add to enable email send"><button class="ghost" onclick="setRecruiter('${j.id}')">Save & enable email</button></div>` : '';
+  return `<div class="appblock" style="grid-column:1/-1;border-top:1px solid var(--line-soft);margin-top:12px;padding-top:12px">
+    <h4>Application <span class="channel ${email?'email':'portal'}">${chan}</span></h4>
+    ${draft}
+    <div class="appacts" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${btns}</div>
+    ${recr}
   </div>`;
 }
-function toggleQ(id){ $('qp-'+id).classList.toggle('open'); }
-async function sendApp(id){ toast('Sending…'); const r=await fetch('/api/jobs/'+encodeURIComponent(id)+'/send',{method:'POST'}); const d=await r.json(); if(d.ok){ toast('✓ Sent to '+d.to); loadQueue(); loadStatus(); loadJobs(); } else toast('Not sent: '+(d.reason||d.error)); }
-async function skipApp(id){ await fetch('/api/jobs/'+encodeURIComponent(id)+'/application',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'skip'})}); toast('Skipped'); loadQueue(); loadStatus(); }
-async function markApplied(id){ await fetch('/api/jobs/'+encodeURIComponent(id)+'/application',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'mark_applied'})}); toast('Marked applied'); loadQueue(); loadStatus(); loadJobs(); }
-async function setRecruiter(id){ const v=$('recr-'+id).value.trim(); if(!v){toast('Enter an email');return;} await fetch('/api/jobs/'+encodeURIComponent(id)+'/application',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({recruiter_email:v})}); toast('Recruiter email saved — now emailable'); loadQueue(); }
+function copyEmailDraft(id){ const pre=document.querySelector('#qp-'+id+' pre'); if(pre) navigator.clipboard.writeText(pre.textContent).then(()=>toast('Email draft copied')); }
+async function sendApp(id){ toast('Sending…'); const r=await fetch('/api/jobs/'+encodeURIComponent(id)+'/send',{method:'POST'}); const d=await r.json(); if(d.ok){ toast('✓ Sent to '+d.to); loadStatus(); loadJobs(); } else toast('Not sent: '+(d.reason||d.error)); }
+async function skipApp(id){ await fetch('/api/jobs/'+encodeURIComponent(id)+'/application',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'skip'})}); toast('Skipped'); loadStatus(); loadJobs(); }
+async function markApplied(id){ await fetch('/api/jobs/'+encodeURIComponent(id)+'/application',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'mark_applied'})}); toast('Marked applied'); loadStatus(); loadJobs(); }
+async function setRecruiter(id){ const v=$('recr-'+id).value.trim(); if(!v){toast('Enter an email');return;} await fetch('/api/jobs/'+encodeURIComponent(id)+'/application',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({recruiter_email:v})}); toast('Recruiter email saved — now emailable'); loadJobs(); }
 
 /* ---------- Jobs ---------- */
 const SUGTAG = {headline:'Headline',evidence:'Proof',keyword:'Keywords',gap:'Gap',general:'Tip'};
@@ -381,6 +358,7 @@ function jobCard(j){
           <a href="${esc(j.apply_url||j.url)}" target="_blank" rel="noopener"><button class="primary" style="width:100%">Apply / open posting →</button></a>
         </div>
       </div>
+      ${appBlock(j)}
     </div>
   </div>`;
 }
@@ -410,11 +388,10 @@ async function loadStatus(){
   $('autoDot').className='dot '+(st.auto_send?'ok':'warn');
   $('autoTxt').textContent = st.auto_send ? `auto-apply ON (≥${st.apply_min_score}%)` : `apply: review queue (≥${st.apply_min_score}%)`;
   $('autoPill').title = st.auto_send ? 'AUTO_SEND_EMAIL=true — recruiters are emailed automatically for emailable matches.' : 'Applications are generated and queued for your one-click approval. Set AUTO_SEND_EMAIL=true in .env for hands-off sending.';
-  $('queueMode').innerHTML = st.auto_send ? 'mode: <b>hands-off auto-send ON</b>' : 'mode: review & one-click send';
 
   const lb=$('logbox');
   if(st.pipeline_running){ lb.style.display='block'; lb.textContent=st.pipeline_log.join('\n'); lb.scrollTop=lb.scrollHeight; } else lb.style.display='none';
-  if(wasRunning&&!st.pipeline_running){ toast('Scan finished'); loadJobs(); loadQueue(); }
+  if(wasRunning&&!st.pipeline_running){ toast('Scan finished'); loadJobs(); }
   wasRunning=st.pipeline_running;
 
   const on=st.watchlist.filter(b=>b.enabled);
@@ -480,9 +457,8 @@ async function downloadTailorPdf(){
   btn.disabled=false; btn.textContent='⬇ Convert to PDF';
 }
 
-loadJobs(); loadStatus(); loadQueue();
+loadJobs(); loadStatus();
 setInterval(loadStatus, 5000);
-setInterval(loadQueue, 12000);
 </script>
 </body>
 </html>

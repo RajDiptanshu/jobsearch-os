@@ -26,16 +26,27 @@ async function tailorResume(job, env) {
   const { markdown } = loadResume(env);
   const suggestions = (job.suggestions || []).map(s => `- ${s.text}`).join('\n');
   const system =
-`You are an expert resume writer for product managers. Rewrite the candidate's resume so it is maximally tailored to ONE specific job description, while staying 100% truthful.
+`You are an expert resume writer for product managers. Tailor the candidate's resume to ONE specific job description while KEEPING THE FORMAT, STRUCTURE, AND LENGTH IDENTICAL. Stay 100% truthful.
 
-Hard rules:
-- NEVER invent employers, titles, dates, numbers, or skills not present in the original. You may reorder, reword, emphasize, merge, or drop bullets — never fabricate.
-- Keep the exact same markdown structure conventions as the input (# name, contact line, ## sections, ### roles, bold, "-" bullets).
-- Rewrite the Professional Summary to mirror the target role's language and echo the job title.
-- Reorder bullets inside each role so the most JD-relevant ones come first; sharpen wording with the JD's own keywords where truthful.
-- Reorder/edit Core Skills so the JD's required skills (that the candidate genuinely has) appear first.
-- Keep total length roughly the same or slightly shorter (this must stay a 2-page resume).
-- Output ONLY the tailored resume markdown. No commentary, no code fences.`;
+This resume renders into a fixed single-page template. Your job is to change ONLY the wording to reflect the JD — not the layout. Follow these rules exactly:
+
+MUST NOT CHANGE (copy through verbatim):
+- The name line "# DIPTANSHU" and the contact line right under it.
+- Every section heading (## Professional Summary, ## Professional Experience, ## Education & Academic Achievements, ## Skills & Core Competencies) — same headings, same order.
+- Every company/role header line and its date, EXACTLY, including the " | " separators and the " @ Date" suffix (e.g. "### FAREPORTAL | Product Manager | Gurugram @ Apr'23 – Present").
+- The italic sub-group headers (*Fraud Prevention & Risk Decisioning*, *Payments & AI*, *Growth & Customer Experience*).
+- The **Awards:** line, the three **Skills** category labels (**Fraud & Risk:**, **Payments:**, **Product & Tools:**), and the Education bullets with their " @ Year".
+- The SAME NUMBER of bullets under every role — do not add, remove, split, or merge bullets.
+
+MAY CHANGE (only to align with the JD, and only where truthful):
+- Reword the Professional Summary to echo the target role's language/title.
+- Reword individual experience bullets to surface the JD's keywords and emphasize the most relevant impact FIRST within each bullet. Keep the leading "**Bold Label:**" where one exists.
+- CRITICAL: keep the TOTAL length equal to or slightly SHORTER than the original so it stays ONE page — each bullet must stay ≤ 2 printed lines. If a reworded bullet gets longer, trim words elsewhere to compensate. Never make the resume longer than the source.
+- Reorder the comma-separated items inside each Skills line so JD-relevant skills the candidate genuinely has come first. Do not invent new skills.
+- Preserve all real numbers/metrics (e.g. ~\$150K, 70%, 66% YoY, 42% → 63%) — you may keep them as-is or move them earlier, never change or drop them.
+
+NEVER invent employers, titles, dates, numbers, skills, or bullets.
+Output ONLY the tailored resume markdown, starting with "# DIPTANSHU". No commentary, no code fences.`;
   const user =
 `TARGET JOB
 Title: ${job.title}
@@ -54,25 +65,50 @@ ${markdown}`;
   return tailored.replace(/^```(?:markdown)?\s*/i, '').replace(/```\s*$/, '').trim();
 }
 
-/* ---------- markdown → styled HTML → PDF ---------- */
+/* ---------- markdown → styled HTML → PDF ----------
+   Renders to the EXACT template of Diptanshu_PM_Fintech_Fraud_Template_2_4.pdf:
+   Carlito/Calibri, accent blue #2e74b5, US-Letter, single page.
+   Structure conventions the markdown must follow:
+     # Name                         → centered black name
+     (line right after # )          → centered blue contact strip
+     ## Section                     → blue uppercase heading with underline rule
+     ### COMPANY | Role | Loc @ Date → company (blue) + role/loc (black bold), date right-aligned
+     *Sub-group*                    → bold-italic sub-header
+     - bullet                       → disc bullet (education bullets may use " @ Year" for a right date)
+     **Label:** text                → paragraph with bold lead-in (skills / awards)
+*/
+const ACCENT = '#2e74b5';
 function esc(s) { return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 function inline(s) { return esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>'); }
+function splitDate(s) { const i = s.indexOf(' @ '); return i >= 0 ? [s.slice(0, i).trim(), s.slice(i + 3).trim()] : [s, null]; }
+
+function roleHtml(text) {
+  const [left, date] = splitDate(text);
+  const p = left.indexOf(' | ');
+  const comp = p >= 0 ? left.slice(0, p) : left;
+  const rest = p >= 0 ? left.slice(p) : '';
+  return `<div class="role"><div class="roleL"><span class="co">${inline(comp)}</span>${rest ? `<span class="rr">${inline(rest)}</span>` : ''}</div>${date ? `<div class="rd">${inline(date)}</div>` : ''}</div>`;
+}
 
 function mdToHtml(md) {
   const lines = md.split(/\r?\n/);
-  let html = '', inList = false, first = true;
+  let html = '', inList = false, afterH1 = false;
   const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
   for (const raw of lines) {
     const line = raw.trimEnd();
     if (!line.trim()) { closeList(); continue; }
     let m;
-    if ((m = line.match(/^# (.+)/))) { closeList(); html += `<h1>${inline(m[1])}</h1>`; first = false; continue; }
-    if ((m = line.match(/^## (.+)/))) { closeList(); html += `<h2>${inline(m[1])}</h2>`; continue; }
-    if ((m = line.match(/^### (.+)/))) { closeList(); html += `<h3>${inline(m[1])}</h3>`; continue; }
-    if ((m = line.match(/^[-•] (.+)/))) { if (!inList) { html += '<ul>'; inList = true; } html += `<li>${inline(m[1])}</li>`; continue; }
+    if ((m = line.match(/^# (.+)/))) { closeList(); html += `<h1>${inline(m[1])}</h1>`; afterH1 = true; continue; }
+    if ((m = line.match(/^## (.+)/))) { closeList(); html += `<h2>${inline(m[1])}</h2>`; afterH1 = false; continue; }
+    if ((m = line.match(/^### (.+)/))) { closeList(); html += roleHtml(m[1]); afterH1 = false; continue; }
+    if ((m = line.match(/^[-•] (.+)/))) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      const [txt, date] = splitDate(m[1]);
+      html += date ? `<li><div class="drow"><span>${inline(txt)}</span><span class="ld">${inline(date)}</span></div></li>` : `<li>${inline(m[1])}</li>`;
+      continue;
+    }
     closeList();
-    // the line right after the H1 is the contact strip
-    if (html.endsWith('</h1>')) { html += `<div class="contact">${inline(line)}</div>`; continue; }
+    if (afterH1) { html += `<div class="contact">${inline(line)}</div>`; afterH1 = false; continue; }
     if (/^\*[^*].*\*$/.test(line)) { html += `<div class="rolegroup">${inline(line.slice(1, -1))}</div>`; continue; }
     html += `<p>${inline(line)}</p>`;
   }
@@ -80,40 +116,44 @@ function mdToHtml(md) {
   return html;
 }
 
+// Shared CSS (units templated so PDF uses px/pt and Word uses pt).
+function css(u) {
+  const b = u === 'pt';
+  return `
+  * { box-sizing: border-box; }
+  body { font-family: Calibri, Carlito, 'Segoe UI', Arial, sans-serif; font-size: 10.2pt; line-height: 1.2; color: #000; margin: 0; }
+  h1 { font-size: 15.5pt; font-weight: 700; text-align: center; margin: 0 0 1pt; color: #000; letter-spacing: .3px; }
+  .contact { text-align: center; font-size: 10.2pt; color: ${ACCENT}; margin: 0 0 5pt; }
+  h2 { font-size: 10.8pt; font-weight: 700; text-transform: uppercase; color: ${ACCENT}; margin: 6.5pt 0 2pt; border-bottom: 1.2pt solid ${ACCENT}; padding-bottom: 1pt; }
+  .role { display: flex; justify-content: space-between; align-items: baseline; gap: 12pt; margin: 4pt 0 1pt; }
+  .role .co { font-size: 11.2pt; font-weight: 700; color: ${ACCENT}; }
+  .role .rr { font-size: 10.2pt; font-weight: 700; color: #000; }
+  .role .rd { font-size: 10.2pt; font-weight: 700; color: #000; white-space: nowrap; }
+  .rolegroup { font-size: 10.2pt; font-weight: 700; font-style: italic; color: #000; margin: 2pt 0 1pt; }
+  p { margin: 1.5pt 0; }
+  ul { margin: 1pt 0 2pt; padding-left: 14pt; }
+  li { margin: 1pt 0; }
+  .drow { display: flex; justify-content: space-between; gap: 12pt; }
+  .drow .ld { font-weight: 700; white-space: nowrap; }
+  b { font-weight: 700; color: #000; }
+  i { font-style: italic; }`;
+}
+
 function resumeHtml(md) {
   return `<!doctype html><html><head><meta charset="utf-8"><style>
-  @page { size: A4; margin: 13mm 14mm; }
-  * { box-sizing: border-box; }
-  body { font: 9.6pt/1.42 'Segoe UI', Calibri, Arial, sans-serif; color: #1a2330; margin: 0; }
-  h1 { font-size: 19pt; letter-spacing: .3px; margin: 0 0 2px; color: #0d3b2e; }
-  .contact { font-size: 8.8pt; color: #445264; border-bottom: 1.6px solid #0f9d6e; padding-bottom: 6px; margin-bottom: 8px; }
-  h2 { font-size: 10.6pt; text-transform: uppercase; letter-spacing: 1.1px; color: #0f9d6e; margin: 11px 0 4px; border-bottom: 1px solid #dde4ec; padding-bottom: 2px; }
-  h3 { font-size: 10pt; margin: 7px 0 1px; color: #14202e; }
-  .rolegroup { font-size: 9pt; font-style: italic; color: #52606f; margin: 5px 0 2px; }
-  p { margin: 2px 0; }
-  ul { margin: 2px 0 4px; padding-left: 15px; }
-  li { margin: 1.5px 0; text-align: justify; }
-  b { color: #10202f; }
+  @page { size: Letter; margin: 10mm 12mm; }
+  ${css('px')}
   </style></head><body>${mdToHtml(md)}</body></html>`;
 }
 
-// Word-compatible .doc export (HTML that MS Word opens natively) — copy-paste friendly draft.
+// Word-compatible .doc export (HTML that MS Word opens natively) — same template, Letter, 1 page.
 function resumeDocHtml(md) {
   return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-<head><meta charset="utf-8"><title>CV Draft</title>
+<head><meta charset="utf-8"><title>CV</title>
 <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
 <style>
-  @page { size: A4; margin: 1.5cm 1.6cm; }
-  body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1a2330; line-height: 1.35; }
-  h1 { font-size: 18pt; color: #0d3b2e; margin: 0 0 2pt; }
-  .contact { font-size: 9pt; color: #445264; border-bottom: 1.5pt solid #0f9d6e; padding-bottom: 4pt; margin-bottom: 8pt; }
-  h2 { font-size: 11pt; text-transform: uppercase; letter-spacing: 1pt; color: #0f9d6e; margin: 10pt 0 3pt; border-bottom: .75pt solid #dde4ec; padding-bottom: 2pt; }
-  h3 { font-size: 10.5pt; margin: 7pt 0 1pt; color: #14202e; }
-  .rolegroup { font-size: 9.5pt; font-style: italic; color: #52606f; margin: 5pt 0 2pt; }
-  p { margin: 2pt 0; }
-  ul { margin: 2pt 0 4pt; padding-left: 14pt; }
-  li { margin: 1.5pt 0; }
-  b { color: #10202f; }
+  @page { size: 8.5in 11in; margin: 0.42in 0.5in; }
+  ${css('pt')}
 </style></head><body>${mdToHtml(md)}</body></html>`;
 }
 
@@ -125,7 +165,17 @@ async function resumePdf(markdown) {
   try {
     const page = await browser.newPage();
     await page.setContent(resumeHtml(markdown), { waitUntil: 'load' });
-    return await page.pdf({ format: 'A4', printBackground: true, margin: { top: '13mm', bottom: '13mm', left: '14mm', right: '14mm' } });
+    // Guarantee a single page: measure the content at the printable width and, only if it
+    // overflows, scale down just enough to fit. The base CV fits at 1.0 (no change); a
+    // slightly-longer tailored draft gets a barely-perceptible shrink instead of spilling.
+    const scale = await page.evaluate(() => {
+      const PRINT_W = 8.5 * 96 - 2 * (12 / 25.4 * 96);   // Letter width − 12mm side margins @96dpi
+      const PRINT_H = 11 * 96 - 2 * (10 / 25.4 * 96);    // Letter height − 10mm top/bottom margins
+      document.body.style.width = PRINT_W + 'px';
+      const h = document.body.getBoundingClientRect().height;
+      return h > PRINT_H ? Math.max(0.75, PRINT_H / h) : 1;
+    });
+    return await page.pdf({ format: 'Letter', printBackground: true, scale, margin: { top: '10mm', bottom: '10mm', left: '12mm', right: '12mm' } });
   } finally { await browser.close(); }
 }
 
