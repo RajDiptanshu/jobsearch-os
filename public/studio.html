@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resume Studio — JobSearchOS</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23101318'/%3E%3Ctext x='50' y='70' font-size='56' text-anchor='middle'%3E%F0%9F%93%84%3C/text%3E%3C/svg%3E">
+<style>
+  :root{--bg:#08090c;--panel:#101318;--panel-2:#0c0e12;--panel-elev:#141821;--line:#20242c;--line-soft:#191d24;--line-bright:#2a2f39;--text:#eceff3;--text-dim:#c3cad4;--muted:#828d9c;--muted-2:#5a6472;--accent:#10b981;--accent-bright:#34d399;--accent-ink:#04130d;--gold:#c9a86a;--blue:#5b93d6;--amber:#e0a94b;--red:#e5695f;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);--radius:14px;}
+  *{box-sizing:border-box}html{-webkit-font-smoothing:antialiased}
+  body{margin:0;min-height:100vh;color:var(--text);background:radial-gradient(900px 480px at 88% -8%,rgba(16,185,129,.10) 0%,transparent 60%),radial-gradient(700px 420px at 4% 2%,rgba(201,168,106,.05) 0%,transparent 55%),var(--bg);font:14.5px/1.55 "Inter","Segoe UI",Roboto,system-ui,-apple-system,sans-serif}
+  a{color:var(--accent-bright);text-decoration:none}
+  ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#242a33;border-radius:8px}
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 20px 60px}
+  header{display:flex;align-items:center;gap:13px;flex-wrap:wrap;padding:2px 0 16px}
+  .logo{display:flex;align-items:center;gap:11px}
+  .logo .mark{width:40px;height:40px;border-radius:11px;background:linear-gradient(140deg,var(--accent),#0c8f66);display:grid;place-items:center;font-size:20px;box-shadow:0 0 0 1px rgba(52,211,153,.25),0 6px 18px rgba(16,185,129,.22)}
+  .logo h1{font-size:19px;margin:0;font-weight:650;letter-spacing:-.3px}.logo .sub{font-size:11px;color:var(--muted);margin-top:1px}
+  .spacer{flex:1}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:7px 13px;font-size:12px;color:var(--text-dim);cursor:pointer}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}.dot.ok{background:var(--accent-bright)}.dot.warn{background:var(--amber)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);border-radius:var(--radius);padding:17px;box-shadow:var(--shadow);margin-bottom:16px}
+  .step{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+  .stepn{width:26px;height:26px;border-radius:8px;background:rgba(16,185,129,.12);color:var(--accent-bright);display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+  .step h2{font-size:15px;margin:0;font-weight:650}
+  .step .hint{font-size:12px;color:var(--muted);margin-left:auto}
+  button.primary{background:linear-gradient(140deg,var(--accent-bright),var(--accent));border:0;color:var(--accent-ink);font-weight:700;border-radius:10px;padding:10px 17px;font-size:13.5px;cursor:pointer;box-shadow:0 6px 16px rgba(16,185,129,.20)}
+  button.primary:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+  button.gold{background:linear-gradient(140deg,#c9a86a,#8a7444);color:#161006}
+  button.blue{background:linear-gradient(140deg,#5b93d6,#3b6ea8);color:#0a1420}
+  button.ghost{background:var(--panel-elev);border:1px solid var(--line-bright);color:var(--text-dim);border-radius:9px;padding:8px 13px;font-size:12.5px;cursor:pointer}
+  button.ghost:hover{border-color:var(--accent);color:var(--accent-bright)}
+  .btnrow{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  select,input[type=text],textarea{background:var(--panel-2);border:1px solid var(--line-bright);color:var(--text);border-radius:9px;padding:10px 12px;font-size:13px;outline:none;font-family:inherit}
+  select:focus,input:focus,textarea:focus{border-color:var(--accent)}
+  textarea{width:100%;resize:vertical;line-height:1.55}
+  .cvlist{display:flex;flex-direction:column;gap:8px}
+  .cvrow{display:flex;align-items:center;gap:11px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2)}
+  .cvrow.active{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.05)}
+  .cvrow .nm{font-weight:600;font-size:13.5px}.cvrow .meta{font-size:11px;color:var(--muted);margin-top:1px}
+  .tabs{display:flex;gap:6px;margin-bottom:10px}
+  .tab{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:99px;padding:6px 14px;font-size:12.5px;cursor:pointer}
+  .tab.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:650}
+  .aibody{font-size:13.5px;color:var(--text-dim);line-height:1.75}
+  .score{display:inline-flex;align-items:baseline;gap:6px;font-weight:800}
+  .score .n{font-size:30px}.score .d{font-size:14px;color:var(--muted)}
+  .sug{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border:1px solid var(--line);border-radius:9px;margin-bottom:7px;background:var(--panel-2);cursor:pointer}
+  .sug input{width:17px;height:17px;accent-color:var(--accent);margin-top:1px;flex:none}
+  .sug span{font-size:13px;color:var(--text-dim)}
+  .muted{color:var(--muted);font-size:12.5px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--panel-elev);border:1px solid var(--accent);color:var(--accent-bright);padding:11px 18px;border-radius:11px;font-size:13px;display:none;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  code{background:var(--panel-2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:11.5px;color:var(--gold)}
+  .hide{display:none}
+  .modalbg{position:fixed;inset:0;background:rgba(4,6,10,.8);z-index:70;display:none;place-items:center;padding:4vh 4vw}
+  .modalbg.show{display:grid}
+  .modal{width:100%;max-width:720px;max-height:92vh;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line-bright);border-radius:16px;display:flex;flex-direction:column;overflow:hidden}
+  .modal .body{padding:16px;overflow:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><div class="mark">📄</div><div><h1>Resume Studio</h1><div class="sub">Store CVs · match to any JD · ATS-optimize · download</div></div></div>
+    <div class="spacer"></div>
+    <span class="pill" id="aiPill"><span class="dot" id="aiDot"></span><span id="aiTxt">AI…</span></span>
+    <a class="pill" href="/coach/">🎓 Coach</a>
+    <a class="pill" href="/">↩ Jobs</a>
+  </header>
+
+  <!-- STEP 1: CV versions -->
+  <div class="card">
+    <div class="step"><div class="stepn">1</div><h2>Your CV versions</h2><span class="hint" id="cvHint"></span></div>
+    <div class="cvlist" id="cvList"></div>
+    <div class="btnrow" style="margin-top:12px"><button class="ghost" onclick="openAddCv()">＋ Add a CV version</button><span class="muted">Store multiple versions (e.g. “Fraud PM”, “AI PM”). The selected one is used for analysis.</span></div>
+  </div>
+
+  <!-- STEP 2: JD -->
+  <div class="card">
+    <div class="step"><div class="stepn">2</div><h2>Target job description</h2></div>
+    <div class="tabs"><span class="tab active" data-jd="paste" onclick="jdTab('paste')">✍️ Paste a JD</span><span class="tab" data-jd="pull" onclick="jdTab('pull')">🎯 Pick a pulled job</span></div>
+    <div id="jdPaste"><textarea id="jdText" rows="7" placeholder="Paste the full job description here…"></textarea></div>
+    <div id="jdPull" class="hide">
+      <input type="text" id="jobSearch" placeholder="Search your matched jobs (title / company)…" style="width:100%;margin-bottom:8px" oninput="drawJobs()">
+      <select id="jobPick" size="6" style="width:100%" onchange="pickJob()"></select>
+      <div class="muted" id="jobPickMeta" style="margin-top:6px"></div>
+    </div>
+  </div>
+
+  <!-- STEP 3: analyze -->
+  <div class="card">
+    <div class="step"><div class="stepn">3</div><h2>ATS analysis</h2><span class="hint">score · missing keywords · fixes · optimized summary</span></div>
+    <div class="btnrow"><button class="primary" id="analyzeBtn" onclick="runAnalyze()">🔍 Run ATS analysis</button><span class="muted" id="analyzeMeta"></span></div>
+    <div id="analysisOut" class="aibody" style="margin-top:14px"></div>
+    <div id="sugWrap" class="hide" style="margin-top:16px">
+      <div style="font-weight:650;font-size:13px;margin-bottom:8px">✅ Choose which changes to implement</div>
+      <div id="sugList"></div>
+      <div class="btnrow" style="margin-top:6px"><button class="ghost" onclick="toggleAllSug(true)">Select all</button><button class="ghost" onclick="toggleAllSug(false)">Clear</button></div>
+    </div>
+  </div>
+
+  <!-- STEP 4: rewrite + download -->
+  <div class="card">
+    <div class="step"><div class="stepn">4</div><h2>Generate tailored CV</h2><span class="hint">ATS-safe rewrite → download</span></div>
+    <div class="btnrow"><button class="primary" id="rewriteBtn" onclick="runRewrite()" disabled>🪄 Generate ATS-optimized CV</button><span class="muted">Uses your selected changes (or all improvements if none picked).</span></div>
+    <div id="rewriteStatus" class="muted" style="margin-top:8px"></div>
+    <textarea id="rewriteMd" rows="16" class="hide" style="margin-top:12px" spellcheck="false" placeholder="Your tailored CV appears here — edit anything before downloading."></textarea>
+    <div id="downloadRow" class="btnrow hide" style="margin-top:12px">
+      <button class="gold" onclick="download('pdf')">⬇ Download PDF</button>
+      <button class="blue" onclick="download('doc')">📝 Download Word (.doc)</button>
+      <button class="ghost" onclick="copyRewrite()">📋 Copy plain text</button>
+      <button class="ghost" onclick="saveAsVersion()">💾 Save as new CV version</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: Interview War Room -->
+  <div class="card">
+    <div class="step"><div class="stepn">5</div><h2>Interview War Room</h2><span class="hint">personalized company dossier · rounds · STAR · live mock</span></div>
+    <div class="muted" style="margin:-4px 0 12px">Generates a full interview prep dossier for a company — likely rounds, cross-round questions, a STAR playbook built from your CV, a live mock with pushbacks &amp; interruptions, system-design templates, a vocab cheat-sheet, and a confidence check. Uses your selected CV version + the JD above (optional).</div>
+    <div class="btnrow" style="margin-bottom:4px">
+      <input type="text" id="warCompany" placeholder="Target company (e.g. Razorpay, Cashfree, Delhivery)" style="flex:1;min-width:200px">
+      <input type="text" id="warRole" placeholder="Role (e.g. Senior PM, Payments)" style="flex:1;min-width:160px">
+    </div>
+    <div class="btnrow" style="margin-top:10px"><button class="primary" id="warBtn" onclick="runWarRoom()">🎯 Build my War Room</button><span class="muted" id="warStatus"></span></div>
+    <div id="warOut" class="aibody" style="margin-top:14px"></div>
+    <div id="warDownload" class="btnrow hide" style="margin-top:12px">
+      <button class="blue" onclick="downloadWar()">📝 Download dossier (.doc)</button>
+      <button class="ghost" onclick="copyWar()">📋 Copy</button>
+    </div>
+  </div>
+
+  <div class="muted" style="text-align:center;padding:10px 0">Resume Studio · local & private · your CV versions are stored only on this machine (data/cv_versions.json, git-ignored)</div>
+</div>
+
+<!-- Add CV modal -->
+<div class="modalbg" id="addCvBg" onclick="if(event.target===this)closeAddCv()">
+  <div class="modal">
+    <div class="body">
+      <div style="font-weight:700;font-size:15px;margin-bottom:10px">Add a CV version</div>
+      <input type="text" id="newCvName" placeholder="Name (e.g. Fraud/Payments PM)" style="width:100%;margin-bottom:10px">
+      <textarea id="newCvMd" rows="12" placeholder="Paste your CV as text/markdown here. Tip: copy from your Word/PDF. Use ## for section headings and - for bullets for best formatting."></textarea>
+      <div class="btnrow" style="margin-top:12px"><button class="primary" onclick="addCv()">Save version</button><button class="ghost" onclick="closeAddCv()">Cancel</button></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',3000);}
+function inl(t){return esc(t).replace(/\*\*(.+?)\*\*/g,'<b style="color:var(--text)">$1</b>').replace(/(^|[^*])\*([^*]+)\*/g,'$1<i style="color:var(--gold)">$2</i>');}
+function md(s){
+  const lines=String(s||'').replace(/\r/g,'').split('\n'); const out=[]; let i=0;
+  const cells=r=>r.replace(/^\s*\|/,'').replace(/\|\s*$/,'').split('|').map(c=>c.trim());
+  while(i<lines.length){ const ln=lines[i];
+    if(/^\s*\|.*\|\s*$/.test(ln) && i+1<lines.length && /-/.test(lines[i+1]) && /^\s*\|?[\s:|-]+\|?\s*$/.test(lines[i+1])){
+      const head=cells(ln); i+=2; const rows=[];
+      while(i<lines.length && /^\s*\|.*\|\s*$/.test(lines[i])){ rows.push(cells(lines[i])); i++; }
+      let t='<div style="overflow-x:auto;margin:9px 0"><table style="width:100%;border-collapse:collapse;font-size:12.5px">';
+      t+='<tr>'+head.map(c=>`<th style="text-align:left;padding:7px 9px;border-bottom:1px solid var(--line-bright);color:var(--accent-bright);font-weight:650">${inl(c)}</th>`).join('')+'</tr>';
+      t+=rows.map(r=>'<tr>'+r.map(c=>`<td style="padding:7px 9px;border-bottom:1px solid var(--line-soft);vertical-align:top">${inl(c)}</td>`).join('')+'</tr>').join('');
+      out.push(t+'</table></div>'); continue; }
+    let m;
+    if(m=ln.match(/^\s*#\s+(.*)/)) out.push(`<div style="font-weight:800;font-size:16px;margin:14px 0 6px;color:var(--text)">${inl(m[1])}</div>`);
+    else if(m=ln.match(/^\s*##\s+(.*)/)) out.push(`<div style="font-weight:750;font-size:14px;margin:14px 0 4px;color:var(--accent-bright)">${inl(m[1])}</div>`);
+    else if(m=ln.match(/^\s*###\s+(.*)/)) out.push(`<div style="font-weight:700;font-size:13px;margin:10px 0 3px;color:var(--text)">${inl(m[1])}</div>`);
+    else if(m=ln.match(/^\s*(\d+)\.\s+(.*)/)) out.push(`<div style="display:flex;gap:8px;margin:3px 0"><span style="color:var(--accent-bright);font-weight:700;flex:none">${m[1]}.</span><span>${inl(m[2])}</span></div>`);
+    else if(m=ln.match(/^\s*[-•]\s+(.*)/)) out.push(`<div style="display:flex;gap:7px;margin:2px 0"><span style="color:var(--accent-bright);flex:none">•</span><span>${inl(m[1])}</span></div>`);
+    else if(ln.trim()==='') out.push('<div style="height:7px"></div>');
+    else out.push(`<div style="margin:2px 0">${inl(ln)}</div>`);
+    i++;
+  }
+  return out.join('');
+}
+
+let CVS={versions:[],activeId:null}, JOBS=[], jdMode='paste', analysis=null, rewriteMd='';
+
+/* ---- AI status ---- */
+async function checkAI(){ try{const a=await(await fetch('/api/coach/ai')).json();$('aiDot').className='dot '+(a.available?'ok':'warn');$('aiTxt').textContent=a.available?('AI ready · '+a.model):'AI: set key in .env';}catch{$('aiTxt').textContent='AI: offline';} }
+
+/* ---- CV versions ---- */
+async function loadCvs(){ CVS=await(await fetch('/api/cv-versions')).json(); drawCvs(); }
+function drawCvs(){
+  $('cvHint').textContent=CVS.versions.length+' version'+(CVS.versions.length===1?'':'s');
+  $('cvList').innerHTML=CVS.versions.map(v=>`<div class="cvrow ${v.id===CVS.activeId?'active':''}">
+    <input type="radio" name="cv" ${v.id===CVS.activeId?'checked':''} onclick="setActive('${v.id}')" style="accent-color:var(--accent);width:17px;height:17px">
+    <div style="flex:1;min-width:0"><div class="nm">${esc(v.name)}</div><div class="meta">${(v.chars||0).toLocaleString()} chars · ${v.source} · ${new Date(v.created_at).toLocaleDateString()}</div></div>
+    <button class="ghost" onclick="editCv('${v.id}')">edit</button>
+    ${CVS.versions.length>1?`<button class="ghost" style="color:var(--red);border-color:rgba(229,105,95,.3)" onclick="delCv('${v.id}')">✕</button>`:''}
+  </div>`).join('') || '<div class="muted">No CV yet — add one below.</div>';
+}
+async function setActive(id){ await fetch('/api/cv-versions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'setActive',id})}); CVS.activeId=id; drawCvs(); }
+function openAddCv(){ $('newCvName').value=''; $('newCvMd').value=''; $('addCvBg').classList.add('show'); }
+function closeAddCv(){ $('addCvBg').classList.remove('show'); }
+async function addCv(){ const name=$('newCvName').value.trim(),markdown=$('newCvMd').value.trim();
+  if(markdown.length<50){toast('Paste your CV text first');return;}
+  await fetch('/api/cv-versions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name||'Untitled CV',markdown,source:'manual'})});
+  closeAddCv(); toast('CV version saved ✓'); loadCvs();
+}
+async function editCv(id){ const v=await(await fetch('/api/cv-versions/'+id)).json(); $('newCvName').value=v.name; $('newCvMd').value=v.markdown; $('addCvBg').classList.add('show');
+  const btn=$('addCvBg').querySelector('button.primary'); btn.textContent='Update version'; btn.onclick=async()=>{ await fetch('/api/cv-versions/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:$('newCvName').value.trim(),markdown:$('newCvMd').value.trim()})}); closeAddCv(); btn.textContent='Save version'; btn.onclick=addCv; toast('Updated ✓'); loadCvs(); }; }
+async function delCv(id){ if(!confirm('Delete this CV version?'))return; await fetch('/api/cv-versions/'+id,{method:'DELETE'}); toast('Deleted'); loadCvs(); }
+async function activeCvMarkdown(){ const id=CVS.activeId; if(!id)return''; const v=await(await fetch('/api/cv-versions/'+id)).json(); return v.markdown||''; }
+
+/* ---- JD ---- */
+function jdTab(m){ jdMode=m; document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.jd===m)); $('jdPaste').classList.toggle('hide',m!=='paste'); $('jdPull').classList.toggle('hide',m!=='pull'); if(m==='pull'&&!JOBS.length)loadJobs(); }
+async function loadJobs(){ try{const d=await(await fetch('/api/jobs?minScore=0&limit=500&sort=score')).json(); JOBS=(d.jobs||[]).filter(j=>(j.description||'').length>150); drawJobs();}catch{} }
+function drawJobs(){ const q=($('jobSearch').value||'').toLowerCase(); const list=JOBS.filter(j=>(j.title+' '+j.company).toLowerCase().includes(q)).slice(0,200);
+  $('jobPick').innerHTML=list.map(j=>`<option value="${j.id}">${esc((j.score?.total||0)+'% · '+j.title+' — '+j.company)}</option>`).join(''); }
+function pickJob(){ const j=JOBS.find(x=>x.id===$('jobPick').value); if(!j)return; $('jdText').value=j.description; $('jobPickMeta').textContent='Loaded JD: '+j.title+' @ '+j.company+' ('+(j.description||'').length+' chars)'; }
+function getJd(){ return $('jdText').value.trim(); }
+
+/* ---- analyze ---- */
+async function runAnalyze(){
+  const cv=await activeCvMarkdown(); const jd=getJd();
+  if(cv.length<50){toast('Select or add a CV first');return;}
+  if(jd.length<30){toast('Paste or pick a JD first');return;}
+  const btn=$('analyzeBtn'); btn.disabled=true; btn.textContent='🔍 Analyzing…'; $('analysisOut').innerHTML='<div class="muted">🤖 running ATS analysis…</div>'; $('sugWrap').classList.add('hide');
+  try{
+    const r=await fetch('/api/studio/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cvMarkdown:cv,jd})});
+    const d=await r.json(); if(!d.ok)throw new Error(d.error||'failed');
+    analysis=d;
+    let head=d.atsScore!=null?`<div class="score" style="color:${d.atsScore>=75?'var(--accent-bright)':d.atsScore>=50?'var(--amber)':'var(--red)'}"><span class="n">${d.atsScore}</span><span class="d">/ 100 ATS match</span></div>`:'';
+    $('analysisOut').innerHTML=head+'<div style="height:10px"></div>'+md(d.markdown);
+    if(d.suggestions&&d.suggestions.length){
+      $('sugList').innerHTML=d.suggestions.map((s,i)=>`<label class="sug"><input type="checkbox" checked data-sug="${i}"><span>${esc(s.label)}</span></label>`).join('');
+      $('sugWrap').classList.remove('hide');
+    }
+    $('rewriteBtn').disabled=false;
+    $('analyzeMeta').textContent='✓ analysed';
+  }catch(e){ $('analysisOut').innerHTML=`<div style="color:var(--red)">⚠ ${esc(e.message)}</div>`; }
+  btn.disabled=false; btn.textContent='🔍 Run ATS analysis';
+}
+function toggleAllSug(v){ document.querySelectorAll('#sugList input').forEach(c=>c.checked=v); }
+
+/* ---- rewrite ---- */
+async function runRewrite(){
+  const cv=await activeCvMarkdown(); const jd=getJd();
+  if(cv.length<50||jd.length<30){toast('Need a CV and a JD');return;}
+  const selected=analysis&&analysis.suggestions?[...document.querySelectorAll('#sugList input:checked')].map(c=>analysis.suggestions[+c.dataset.sug].label):[];
+  const btn=$('rewriteBtn'); btn.disabled=true; btn.textContent='🪄 Generating…'; $('rewriteStatus').textContent='🤖 rewriting your CV for this JD (ATS-optimized)…';
+  try{
+    const r=await fetch('/api/studio/rewrite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cvMarkdown:cv,jd,selected})});
+    const d=await r.json(); if(!d.ok)throw new Error(d.error||'failed');
+    rewriteMd=d.markdown; $('rewriteMd').value=rewriteMd; $('rewriteMd').classList.remove('hide'); $('downloadRow').classList.remove('hide');
+    $('rewriteStatus').textContent='✓ ATS-optimized CV ready — review/edit below, then download.';
+  }catch(e){ $('rewriteStatus').innerHTML=`<span style="color:var(--red)">⚠ ${esc(e.message)}</span>`; }
+  btn.disabled=false; btn.textContent='🪄 Generate ATS-optimized CV';
+}
+async function download(kind){
+  const md=$('rewriteMd').value.trim(); if(md.length<100){toast('Nothing to download');return;}
+  const co=(getJdCompany()||'Tailored'); const fname='Diptanshu_CV_'+co.replace(/[^\w]+/g,'_').replace(/^_+|_+$/g,'')+(kind==='pdf'?'.pdf':'.doc');
+  const url=kind==='pdf'?'/api/resume/pdf':'/api/resume/doc';
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({markdown:md,filename:fname})});
+  if(!r.ok){toast('Download failed');return;}
+  const blob=await r.blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click(); URL.revokeObjectURL(a.href); toast('⬇ '+fname);
+}
+function getJdCompany(){ const m=$('jobPickMeta').textContent.match(/@ ([^(]+)/); return m?m[1].trim():''; }
+function copyRewrite(){ navigator.clipboard.writeText($('rewriteMd').value).then(()=>toast('Copied — paste into your DOCX')); }
+async function saveAsVersion(){ const md=$('rewriteMd').value.trim(); if(md.length<100)return; const co=getJdCompany()||'Tailored'; await fetch('/api/cv-versions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Tailored · '+co,markdown:md,source:'studio-rewrite'})}); toast('Saved as new CV version ✓'); loadCvs(); }
+
+/* ---- War Room ---- */
+let warMd='';
+async function runWarRoom(){
+  const cv=await activeCvMarkdown(); const jd=getJd(); const company=$('warCompany').value.trim(); const role=$('warRole').value.trim();
+  if(cv.length<50){toast('Select or add a CV first');return;}
+  if(company.length<2){toast('Enter the target company');return;}
+  const btn=$('warBtn'); btn.disabled=true; btn.textContent='🎯 Building…'; $('warStatus').textContent='🤖 assembling your '+company+' dossier (rounds · STAR · live mock)…'; $('warOut').innerHTML='<div class="muted">building the full 8-part dossier (rounds, STAR, live mock, system-design, cheat-sheet) — this takes ~60–90s, worth the wait…</div>'; $('warDownload').classList.add('hide');
+  try{
+    const r=await fetch('/api/studio/warroom',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cvMarkdown:cv,jd,company,role})});
+    const d=await r.json(); if(!d.ok)throw new Error(d.error||'failed');
+    warMd=d.markdown; $('warOut').innerHTML=md(warMd); $('warDownload').classList.remove('hide'); $('warStatus').textContent='✓ dossier ready';
+  }catch(e){ $('warOut').innerHTML=`<div style="color:var(--red)">⚠ ${esc(e.message)}</div>`; $('warStatus').textContent=''; }
+  btn.disabled=false; btn.textContent='🎯 Build my War Room';
+}
+async function downloadWar(){
+  if(warMd.length<100){toast('Nothing to download');return;}
+  const co=($('warCompany').value.trim()||'Company').replace(/[^\w]+/g,'_');
+  const fname='WarRoom_'+co+'.doc';
+  const r=await fetch('/api/resume/doc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({markdown:warMd,filename:fname})});
+  if(!r.ok){toast('Download failed');return;}
+  const blob=await r.blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click(); URL.revokeObjectURL(a.href); toast('⬇ '+fname);
+}
+function copyWar(){ navigator.clipboard.writeText(warMd).then(()=>toast('Dossier copied')); }
+
+checkAI(); loadCvs();
+</script>
+</body>
+</html>

@@ -9,6 +9,7 @@ node_modules/
 # Personal data / PII — resume, comp, contact details
 data/profile.json
 data/resume_current.md
+data/cv_versions.json
 
 # Live scraped job data & run history — real (possibly copyrighted) scraped content
 data/jobs.json
@@ -25,6 +26,10 @@ data/logs/
 
 # Playwright browser binaries (installed via `npm run setup-naukri`)
 .playwright-mcp/
+
+# Third-party / personal reference material dropped into the repo dir (never publish)
+*.pdf
+S Product Framework.pdf
 
 # OS/editor cruft
 .DS_Store

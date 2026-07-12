@@ -11,6 +11,7 @@ const { scoreJob } = require('./pipeline/score');
 const { generateApplication, sendApplicationEmail } = require('./pipeline/apply');
 const { loadResume, tailorResume, resumePdf, resumeDocHtml } = require('./pipeline/resume');
 const { aiConfig } = require('./pipeline/ai');
+const studio = require('./pipeline/studio');
 
 const env = loadEnv();
 const PORT = +(env.PORT || 4321);
@@ -203,6 +204,54 @@ const server = http.createServer(async (req, res) => {
         send('[DONE]'); res.end();
       } catch (e) { send({ error: e.message }); send('[DONE]'); res.end(); }
       return;
+    }
+
+    // ---------- Resume Studio: CV versions ----------
+    if (p === '/api/cv-versions' && req.method === 'GET') return json(res, 200, studio.listVersions(env));
+    if (p === '/api/cv-versions' && req.method === 'POST') {
+      const body = await readBody(req);
+      if (body.action === 'setActive' && body.id) return json(res, 200, { ok: true, activeId: studio.setActive(env, body.id) });
+      const v = studio.addVersion(env, { name: body.name, markdown: body.markdown, source: body.source });
+      return json(res, 200, { ok: true, id: v.id });
+    }
+    if (p.match(/^\/api\/cv-versions\/[^/]+$/) && req.method === 'GET') {
+      const v = studio.getVersion(env, decodeURIComponent(p.split('/')[3]));
+      return v ? json(res, 200, v) : json(res, 404, { error: 'not found' });
+    }
+    if (p.match(/^\/api\/cv-versions\/[^/]+$/) && req.method === 'PATCH') {
+      const body = await readBody(req);
+      const v = studio.updateVersion(env, decodeURIComponent(p.split('/')[3]), body);
+      return v ? json(res, 200, { ok: true }) : json(res, 404, { error: 'not found' });
+    }
+    if (p.match(/^\/api\/cv-versions\/[^/]+$/) && req.method === 'DELETE') {
+      studio.deleteVersion(env, decodeURIComponent(p.split('/')[3]));
+      return json(res, 200, { ok: true });
+    }
+
+    // ---------- Resume Studio: ATS analysis + rewrite ----------
+    if (p === '/api/studio/analyze' && req.method === 'POST') {
+      const body = await readBody(req);
+      const cv = (body.cvMarkdown || '').trim(); const jd = (body.jd || '').trim();
+      if (cv.length < 50) return json(res, 400, { error: 'CV is empty — pick or add a CV version first' });
+      if (jd.length < 30) return json(res, 400, { error: 'Paste a job description (or pick a pulled job) first' });
+      try { return json(res, 200, { ok: true, ...(await studio.analyze(cv, jd, env)) }); }
+      catch (e) { return json(res, 502, { ok: false, error: e.message }); }
+    }
+    if (p === '/api/studio/rewrite' && req.method === 'POST') {
+      const body = await readBody(req);
+      const cv = (body.cvMarkdown || '').trim(); const jd = (body.jd || '').trim();
+      if (cv.length < 50 || jd.length < 30) return json(res, 400, { error: 'Need a CV and a JD' });
+      try { return json(res, 200, { ok: true, markdown: await studio.rewrite(cv, jd, body.selected || [], env) }); }
+      catch (e) { return json(res, 502, { ok: false, error: e.message }); }
+    }
+    if (p === '/api/studio/warroom' && req.method === 'POST') {
+      const body = await readBody(req);
+      const cv = (body.cvMarkdown || '').trim(); const jd = (body.jd || '').trim();
+      const company = (body.company || '').trim();
+      if (cv.length < 50) return json(res, 400, { error: 'Pick or add a CV version first' });
+      if (company.length < 2) return json(res, 400, { error: 'Enter the target company' });
+      try { return json(res, 200, { ok: true, markdown: await studio.warroom(cv, jd, company, body.role || 'Product Manager', env) }); }
+      catch (e) { return json(res, 502, { ok: false, error: e.message }); }
     }
 
     // ---------- resume tailoring ----------
