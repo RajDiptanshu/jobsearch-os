@@ -163,10 +163,11 @@ async function main() {
     .sort((a, b) => (b.score?.total || 0) - (a.score?.total || 0))
     .slice(0, MAX_EMAIL_JOBS);
 
-  // Tailored CV drafts (.doc) for the digest — the "copy-paste ready" deliverable.
-  // Needs an AI key in .env; capped per run; archived to data/outbox/drafts/.
+  // Tailored CV drafts (.doc) for the digest — OFF by default. The user tailors on demand
+  // from the dashboard ("🪄 Tailor my resume for this JD") so nothing is auto-tailored.
+  // Opt back in to automatic drafts by setting ATTACH_CV_DRAFTS=true in .env.
   let cvDrafts = [];
-  const draftsOn = env.ATTACH_CV_DRAFTS !== 'false';
+  const draftsOn = env.ATTACH_CV_DRAFTS === 'true';
   const hasAiKey = !!((env.ANTHROPIC_API_KEY || '').trim() || (env.OPENAI_API_KEY || '').trim());
   if (!noEmail && draftsOn && hasAiKey && emailable.length) {
     const targets = emailable
@@ -187,6 +188,8 @@ async function main() {
     if (cvDrafts.length) console.log(`[run] ${cvDrafts.length} tailored CV draft(s) ready to attach`);
   } else if (!noEmail && draftsOn && !hasAiKey && emailable.length) {
     console.log('[run] CV drafts skipped — no ANTHROPIC_API_KEY/OPENAI_API_KEY in .env');
+  } else if (!draftsOn) {
+    console.log('[run] auto CV tailoring OFF — tailor on demand from the dashboard (🪄 Tailor my resume for this JD)');
   }
 
   if (!noEmail && emailable.length) {

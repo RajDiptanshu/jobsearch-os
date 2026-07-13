@@ -61,8 +61,23 @@ ${suggestions || '(none)'}
 
 CANDIDATE'S CURRENT MASTER RESUME (markdown):
 ${markdown}`;
-  const tailored = await aiComplete({ system, user, env, maxTokens: 4000 });
-  return tailored.replace(/^```(?:markdown)?\s*/i, '').replace(/```\s*$/, '').trim();
+  // claude-sonnet-5 has extended thinking on, which occasionally eats the token budget and
+  // returns an empty or truncated resume. Give generous headroom and validate the result,
+  // retrying up to 3x; only a well-formed full resume (name + all sections) is accepted.
+  const looksComplete = (s) => s.includes('# DIPTANSHU')
+    && /##\s*Professional Experience/i.test(s)
+    && /##\s*Skills & Core Competencies/i.test(s)
+    && s.length > 2500;
+  let last = '', lastErr = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const raw = await aiComplete({ system, user, env, maxTokens: 6000 });
+      last = raw.replace(/^```(?:markdown)?\s*/i, '').replace(/```\s*$/, '').trim();
+      if (looksComplete(last)) return last;
+    } catch (e) { lastErr = e; }
+  }
+  if (looksComplete(last)) return last;
+  throw new Error(lastErr ? `tailoring failed (${lastErr.message}) — please try again` : 'tailoring returned an incomplete resume — please try again');
 }
 
 /* ---------- markdown → styled HTML → PDF ----------
