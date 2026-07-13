@@ -405,15 +405,30 @@ async function runNow(){ $('runBtn').disabled=true; $('runBtn').textContent='⏳
 /* ---------- resume tailoring ---------- */
 let tailorCtx = null;
 function tailorButtons(enabled){ ['tailorPdfBtn','tailorDocBtn','tailorCopyBtn','tailorRegenBtn'].forEach(i=>$(i).disabled=!enabled); }
+// Robust blob download: anchor must be in the DOM to click, and the object URL must
+// stay alive until the browser has read it — revoking immediately aborts the download.
+function saveBlob(blob, fname){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fname; a.rel = 'noopener'; a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{ try{ document.body.removeChild(a); }catch(e){} URL.revokeObjectURL(url); }, 4000);
+}
 async function downloadTailorDoc(){
   const md = $('tailorMd').value.trim();
   if(md.length<100){ toast('Nothing to export yet'); return; }
-  const fname = 'Diptanshu_CV_'+(tailorCtx.company||'Draft').replace(/[^\w]+/g,'_').replace(/^_+|_+$/g,'')+'.doc';
-  const r = await fetch('/api/resume/doc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({markdown:md,filename:fname})});
-  if(!r.ok){ toast('Word export failed'); return; }
-  const blob = await r.blob();
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click(); URL.revokeObjectURL(a.href);
-  toast('⬇ '+fname+' — opens in Word, copy-paste ready');
+  const btn=$('tailorDocBtn'); btn.disabled=true; const lbl=btn.textContent; btn.textContent='⏳ Building .doc…';
+  try{
+    const fname = 'Diptanshu_CV_'+(tailorCtx.company||'Draft').replace(/[^\w]+/g,'_').replace(/^_+|_+$/g,'')+'.doc';
+    const r = await fetch('/api/resume/doc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({markdown:md,filename:fname})});
+    if(!r.ok){ const d=await r.json().catch(()=>({})); throw new Error(d.error||('HTTP '+r.status)); }
+    const blob = await r.blob();
+    if(!blob || blob.size<200) throw new Error('empty file from server');
+    saveBlob(blob, fname);
+    toast('⬇ '+fname+' — opens in Word, copy-paste ready');
+  }catch(e){ toast('Word export failed: '+e.message); }
+  btn.disabled=false; btn.textContent=lbl;
 }
 async function openTailor(id){
   tailorCtx = { id, company:'' };
@@ -451,7 +466,8 @@ async function downloadTailorPdf(){
     const r = await fetch('/api/resume/pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({markdown:md,filename:fname})});
     if(!r.ok){ const d=await r.json().catch(()=>({})); throw new Error(d.error||('HTTP '+r.status)); }
     const blob = await r.blob();
-    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click(); URL.revokeObjectURL(a.href);
+    if(!blob || blob.size<1000) throw new Error('empty PDF from server');
+    saveBlob(blob, fname);
     toast('⬇ '+fname);
   }catch(e){ toast('PDF failed: '+e.message); }
   btn.disabled=false; btn.textContent='⬇ Convert to PDF';
