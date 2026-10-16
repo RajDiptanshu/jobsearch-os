@@ -15,7 +15,7 @@ namespace InterviewAssistant;
 
 public sealed class MainWindow : Window
 {
-    static readonly SolidColorBrush Ink=Brush("#F2F4F5"), Muted=Brush("#A9B6C8"), Accent=Brush("#A8ECD0"), Panel=Brush("#172131"), BackgroundInk=Brush("#0E1520");
+    static readonly SolidColorBrush Ink=Brush("#F2F4F5"), Muted=Brush("#D4DEEB"), Accent=Brush("#A8ECD0"), Panel=Brush("#40172131"), BackgroundInk=Brush("#0E1520");
     readonly LocalSettings settings;
     CandidateProfile? profile;
     string? key;
@@ -23,9 +23,10 @@ public sealed class MainWindow : Window
     readonly TextBlock status=Label("Ready to prepare",13,Accent), captureStatus=Label("Capture protection pending",11,Muted), credentialStatus=Label("API setup pending",12,Muted), modeLabel=Label("YOUR NEXT ANSWER",11,Accent);
     readonly TextBox question=Input("",15), transcript=Input("",13), answer=Input("",18), sourceDetails=Input("",11);
     readonly ComboBox devices=new(){MinHeight=32,DisplayMemberPath="Name"};
+    readonly ComboBox audioSources=new(){MinHeight=32};
     readonly ComboBox lengths=new(){MinHeight=30};
     readonly ListBox storyList=new(){Background=Brush("#111B29"),Foreground=Ink,BorderThickness=new Thickness(0),MaxHeight=182,DisplayMemberPath="Title"};
-    readonly CheckBox autoAnswer=new(){Content="Suggest after completed questions",Foreground=Muted,Margin=new Thickness(0,12,0,4)};
+    readonly CheckBox autoAnswer=new(){Content="Auto-answer",Foreground=Ink,VerticalAlignment=VerticalAlignment.Center,Margin=new Thickness(8,0,0,0),ToolTip="Automatically answer completed interviewer questions after a short pause. Turn off for manual answers."};
     readonly ProgressBar audioMeter=new(){Minimum=0,Maximum=1,Height=4,Background=Brush("#26354A"),Foreground=Accent,BorderThickness=new Thickness(0)};
     readonly Button listen=Button("Start listening"), generate=Button("Generate answer",true), cancel=Button("Stop answer"), compactButton=Button("Floating view"), rehearsal=Button("Rehearse selected story");
     readonly Grid shell=new(){Margin=new Thickness(24)}, workspace=new();
@@ -33,7 +34,7 @@ public sealed class MainWindow : Window
     readonly List<ConversationTurn> history=[];
     readonly StringBuilder committedTranscript=new();
     WindowIntegration? integration;
-    AudioCaptureService? capture;
+    IAudioCaptureSource? capture;
     RealtimeTranscriber? transcriber;
     CancellationTokenSource? listeningCts,answerCts,autoCts;
     Channel<byte[]>? audioQueue;
@@ -43,14 +44,16 @@ public sealed class MainWindow : Window
     int answerGeneration, listeningGeneration;
     string lastQuestion="", partial="",pendingQuestion="";
     readonly bool smokeMode;
+    readonly Func<AIClient> answerClientFactory;
 
-    public MainWindow(string? profilePath=null,bool smokeMode=false)
+    public MainWindow(string? profilePath=null,bool smokeMode=false,Func<AIClient>? answerClientFactory=null)
     {
         this.smokeMode=smokeMode;
+        this.answerClientFactory=answerClientFactory ?? (()=>new AIClient());
         settings=smokeMode ? new LocalSettings() : LocalSettings.Load();
         Title="Interview Assistant · JobSearchOS"; Width=1080;Height=800;MinWidth=560;MinHeight=470;
-        Background=BackgroundInk;Foreground=Ink;FontFamily=new FontFamily("Segoe UI");WindowStartupLocation=WindowStartupLocation.CenterScreen;
-        WindowStyle=WindowStyle.None;ResizeMode=ResizeMode.CanResizeWithGrip;Topmost=true;
+        Background=Tint(settings.OverlayTint);Foreground=Ink;FontFamily=new FontFamily("Segoe UI");WindowStartupLocation=WindowStartupLocation.CenterScreen;
+        WindowStyle=WindowStyle.None;AllowsTransparency=true;ResizeMode=ResizeMode.CanResizeWithGrip;Topmost=true;
         BuildLayout();
         cancel.IsEnabled=false;
         SourceInitialized+=(_,_)=>InitializeWindowIntegration();
@@ -71,6 +74,11 @@ public sealed class MainWindow : Window
         RefreshCredential();
         if(key==null&&profile!=null)SetStatus("Local rehearsal ready · API connection pending");
         autoAnswer.IsChecked=settings.AutoAnswer;
+        autoAnswer.Checked+=(_,_)=>{settings.AutoAnswer=true;SaveSettings();};
+        autoAnswer.Unchecked+=(_,_)=>{settings.AutoAnswer=false;autoCts?.Cancel();SaveSettings();SetStatus("Manual answers · click Generate answer when ready");};
+        audioSources.ItemsSource=new[]{"Zoom desktop only","Output device (manual)"};audioSources.SelectedIndex=settings.AudioSource=="Output"?1:0;
+        audioSources.SelectionChanged+=(_,_)=>{settings.AudioSource=audioSources.SelectedIndex==1?"Output":"Zoom";devices.IsEnabled=!listening&&settings.AudioSource=="Output";SaveSettings();};
+        devices.IsEnabled=settings.AudioSource=="Output";
         lengths.ItemsSource=new[]{"45–60 seconds","20–30 seconds","90 seconds"};lengths.SelectedIndex=0;
         answer.Text="A clear opening.\nA story you can stand behind.\nRoom to think.\n\nLoad your profile, select a story to rehearse, or connect the API and ask a question.";
     }
@@ -97,25 +105,30 @@ public sealed class MainWindow : Window
         storyText.SetBinding(TextBlock.TextProperty,new System.Windows.Data.Binding("Title"));storyText.SetValue(TextBlock.TextWrappingProperty,TextWrapping.Wrap);storyText.SetValue(FrameworkElement.MarginProperty,new Thickness(4));storyTemplate.VisualTree=storyText;storyList.ItemTemplate=storyTemplate;
         sidebar.Children.Add(storyList);
         rehearsal.Margin=new Thickness(0,8,0,12);rehearsal.Click+=(_,_)=>ShowRehearsal();sidebar.Children.Add(rehearsal);
-        sidebar.Children.Add(Section("MEETING AUDIO"));sidebar.Children.Add(devices);sidebar.Children.Add(audioMeter);
+        sidebar.Children.Add(Section("MEETING AUDIO"));sidebar.Children.Add(audioSources);sidebar.Children.Add(devices);sidebar.Children.Add(audioMeter);
         var refresh=Button("Refresh audio devices");refresh.Margin=new Thickness(0,7,0,5);refresh.Click+=(_,_)=>RefreshDevices();sidebar.Children.Add(refresh);
-        sidebar.Children.Add(Label("Captures all sound on this output device. Use headphones for clearer questions.",11,Muted));
-        listen.Click+=async(_,_)=>await ToggleListeningAsync();sidebar.Children.Add(autoAnswer);
-        sidebar.Children.Add(Label("Listening sends device audio to OpenAI. No raw audio or transcript is saved by default.",11,Muted));
+        sidebar.Children.Add(Label("Zoom desktop only captures Zoom's playback, including the interviewer. Use headphones. Output-device mode includes other apps.",11,Muted));
+        listen.Click+=async(_,_)=>await ToggleListeningAsync();
+        sidebar.Children.Add(Label("Listening sends selected audio to OpenAI. No raw audio or transcript is saved by default.",11,Muted));
         sidebar.Children.Add(Section("CONNECTION"));sidebar.Children.Add(credentialStatus);
         var credentialButton=Button("Select local API env file");credentialButton.ToolTip="Choose an existing local file containing OPENAI_API_KEY. Key values are never displayed or copied to settings.";credentialButton.Click+=(_,_)=>ChooseCredentials();sidebar.Children.Add(credentialButton);
         sidebar.Children.Add(Section("SOURCE NOTES"));sourceDetails.IsReadOnly=true;sourceDetails.MinHeight=105;sourceDetails.MaxHeight=150;sourceDetails.FontSize=11;sidebar.Children.Add(sourceDetails);
         var main=new Grid();main.RowDefinitions.Add(new(){Height=GridLength.Auto});main.RowDefinitions.Add(new(){Height=GridLength.Auto});main.RowDefinitions.Add(new());Grid.SetColumn(main,2);workspace.Children.Add(main);
         transcriptPanel.Children.Add(Section("LIVE CONVERSATION"));transcript.IsReadOnly=true;transcript.Height=86;transcript.Text="Transcription appears here after you start listening.";transcriptPanel.Children.Add(transcript);main.Children.Add(transcriptPanel);
-        var askPanel=new StackPanel{Margin=new Thickness(0,18,0,16)};askPanel.Children.Add(Label("Question or follow-up",12,Muted));question.Height=62;question.AcceptsReturn=true;question.ToolTip="Type a question or edit the latest completed transcription. Ctrl+Alt+Enter generates an answer.";askPanel.Children.Add(question);
+        var askPanel=new StackPanel{Margin=new Thickness(0,18,0,16)};
+        var questionHeader=new Grid();questionHeader.ColumnDefinitions.Add(new());questionHeader.ColumnDefinitions.Add(new(){Width=GridLength.Auto});questionHeader.Children.Add(Label("Question or follow-up · transcribed automatically",12,Muted));Grid.SetColumn(autoAnswer,1);questionHeader.Children.Add(autoAnswer);askPanel.Children.Add(questionHeader);
+        question.Height=62;question.AcceptsReturn=true;question.ToolTip="Spoken questions appear automatically while listening. Type or edit a question for manual generation. Ctrl+Alt+Enter generates an answer.";askPanel.Children.Add(question);
         var controls=new WrapPanel{Margin=new Thickness(0,8,0,0)};controls.Children.Add(listen);generate.Click+=async(_,_)=>await AnswerAsync();controls.Children.Add(generate);cancel.Click+=(_,_)=>{answerCts?.Cancel();SetStatus("Answer stopped");};controls.Children.Add(cancel);controls.Children.Add(lengths);
         var note=Button("Add as what I said");note.ToolTip="Adds the text above as your actual spoken response, so follow-ups can use it.";note.Click+=(_,_)=>{if(!string.IsNullOrWhiteSpace(question.Text)){AddHistory("candidate",question.Text);SetStatus("Your response was added to this session");question.Clear();}};controls.Children.Add(note);askPanel.Children.Add(controls);Grid.SetRow(askPanel,1);main.Children.Add(askPanel);
         var answerCard=new Border{Background=Panel,CornerRadius=new CornerRadius(12),Padding=new Thickness(20)};
         var answerGrid=new Grid();answerGrid.RowDefinitions.Add(new(){Height=GridLength.Auto});answerGrid.RowDefinitions.Add(new());answerGrid.Children.Add(modeLabel);
-        answer.IsReadOnly=true;answer.Background=Panel;answer.BorderThickness=new Thickness(0);answer.Padding=new Thickness(0,12,0,0);answer.FontFamily=new FontFamily("Segoe UI");Grid.SetRow(answer,1);answerGrid.Children.Add(answer);answerCard.Child=answerGrid;Grid.SetRow(answerCard,2);main.Children.Add(answerCard);
+        answer.IsReadOnly=true;answer.Background=Brushes.Transparent;answer.BorderThickness=new Thickness(0);answer.Padding=new Thickness(0,12,0,0);answer.FontFamily=new FontFamily("Segoe UI");Grid.SetRow(answer,1);answerGrid.Children.Add(answer);answerCard.Child=answerGrid;Grid.SetRow(answerCard,2);main.Children.Add(answerCard);
         var footer=new Grid{Margin=new Thickness(0,16,0,0)};footer.ColumnDefinitions.Add(new());footer.ColumnDefinitions.Add(new(){Width=GridLength.Auto});
         footer.Children.Add(Label("Ctrl+Alt+Space  listen    ·    Ctrl+Alt+Enter  answer    ·    Ctrl+Alt+H  show / hide",10,Muted));
         var footerControls=new StackPanel{Orientation=Orientation.Horizontal};
+        footerControls.Children.Add(Label("Tint",10,Muted));
+        var tint=new Slider{Minimum=.18,Maximum=.85,Value=settings.OverlayTint,Width=80,Margin=new Thickness(5,0,12,0),VerticalAlignment=VerticalAlignment.Center,ToolTip="Adjust the translucent background. Text remains solid."};
+        tint.ValueChanged+=(_,_)=>{settings.OverlayTint=tint.Value;Background=Tint(tint.Value);};tint.PreviewMouseLeftButtonUp+=(_,_)=>SaveSettings();tint.LostKeyboardFocus+=(_,_)=>SaveSettings();footerControls.Children.Add(tint);
         var clear=Button("Clear session");clear.Click+=async(_,_)=>{await StopListeningAsync();ResetConversation();SetStatus("Session cleared; listening stopped");};footerControls.Children.Add(clear);
         Grid.SetColumn(footerControls,1);footer.Children.Add(footerControls);Grid.SetRow(footer,3);shell.Children.Add(footer);
     }
@@ -200,7 +213,15 @@ public sealed class MainWindow : Window
         if(changingListening)return;
         if(listening){await StopListeningAsync();return;}
         RefreshCredential();if(key==null||profile==null){SetStatus("Load a profile and connect an API credential first.");return;}
-        if(devices.SelectedItem is not AudioDeviceInfo device){SetStatus("Choose a working output device.");return;}
+        var zoomMode=audioSources.SelectedIndex!=1;
+        int? zoomPid=null;
+        if(zoomMode)
+        {
+            try{zoomPid=ZoomProcessFinder.Find();}catch{SetStatus("Could not inspect Zoom. Open the Zoom desktop app and try again.");return;}
+            if(zoomPid==null){SetStatus("Open Zoom desktop and join the meeting, then start listening. For browser Zoom, select output-device mode.");return;}
+        }
+        var device=devices.SelectedItem as AudioDeviceInfo;
+        if(!zoomMode&&device==null){SetStatus("Choose a working output device.");return;}
         changingListening=true;listen.IsEnabled=false;SetStatus("Connecting live transcription…");listeningCts=new CancellationTokenSource();var token=listeningCts.Token;
         var sessionGeneration=Interlocked.Increment(ref listeningGeneration);
         try
@@ -211,7 +232,7 @@ public sealed class MainWindow : Window
             transcriber.Failed+=message=>Dispatcher.InvokeAsync(async()=>{if(sessionGeneration==listeningGeneration){await StopListeningAsync();SetStatus(message);}});
             await transcriber.ConnectAsync(token);
             audioQueue=Channel.CreateBounded<byte[]>(new BoundedChannelOptions(100){SingleReader=true,SingleWriter=true,FullMode=BoundedChannelFullMode.Wait});
-            detector.Reset();capture=new AudioCaptureService();
+            detector.Reset();capture=zoomMode?new ProcessLoopbackCapture():new AudioCaptureService();
             capture.PcmAvailable+=pcm=>{if(sessionGeneration==listeningGeneration&&audioQueue!=null&&!audioQueue.Writer.TryWrite(pcm))Dispatcher.InvokeAsync(async()=>{if(sessionGeneration==listeningGeneration){await StopListeningAsync();SetStatus("Audio upload fell behind. Listening stopped; reconnect and try again.");}});};
             capture.LevelChanged+=level=>Dispatcher.InvokeAsync(()=>{if(sessionGeneration==listeningGeneration)audioMeter.Value=level;});
             capture.Failed+=message=>Dispatcher.InvokeAsync(async()=>{if(sessionGeneration==listeningGeneration){await StopListeningAsync();SetStatus(message);}});
@@ -238,7 +259,9 @@ public sealed class MainWindow : Window
                 catch(OperationCanceledException){}
                 catch(Exception){await Dispatcher.InvokeAsync(async()=>{if(sessionGeneration==listeningGeneration){await StopListeningAsync();SetStatus("Transcription connection interrupted. Start listening to reconnect.");}});}
             },token);
-            capture.Start(device.Id);listening=true;settings.DeviceId=device.Id;settings.AutoAnswer=autoAnswer.IsChecked==true;SaveSettings();listen.Content="Stop listening";devices.IsEnabled=false;SetStatus("Listening to output audio · Zoom");credentialStatus.Text="Live transcription connected";
+            if(capture is ProcessLoopbackCapture zoomCapture)await zoomCapture.StartAsync(zoomPid!.Value,token);
+            else ((AudioCaptureService)capture).Start(device!.Id);
+            listening=true;if(device!=null)settings.DeviceId=device.Id;settings.AutoAnswer=autoAnswer.IsChecked==true;SaveSettings();listen.Content="Stop listening";devices.IsEnabled=false;audioSources.IsEnabled=false;SetStatus(zoomMode?"Listening to Zoom only · questions appear automatically":"Listening to output audio · questions appear automatically");credentialStatus.Text="Live transcription connected";
         }
         catch(OperationCanceledException){await StopListeningAsync();SetStatus("Listening cancelled");}
         catch(Exception ex){await StopListeningAsync();SetStatus(SafeError(ex));}
@@ -249,7 +272,7 @@ public sealed class MainWindow : Window
     {
         Interlocked.Increment(ref listeningGeneration);listening=false;listeningCts?.Cancel();autoCts?.Cancel();capture?.Dispose();capture=null;audioQueue?.Writer.TryComplete();audioQueue=null;
         var old=transcriber;transcriber=null;if(old!=null){try{await old.DisposeAsync();}catch{}}
-        listen.Content="Start listening";listen.IsEnabled=key!=null&&profile!=null;devices.IsEnabled=true;audioMeter.Value=0;
+        listen.Content="Start listening";listen.IsEnabled=key!=null&&profile!=null;devices.IsEnabled=audioSources.SelectedIndex==1;audioSources.IsEnabled=true;audioMeter.Value=0;
         if(!closing)SetStatus("Listening paused");
     }
 
@@ -286,16 +309,18 @@ public sealed class MainWindow : Window
         var prompt=GroundingService.BuildPrompt(profile,text,history,lengths.SelectedItem?.ToString()??"45–60 seconds");
         modeLabel.Text="AI ANSWER · CHECK AGAINST YOUR EXPERIENCE";answer.Clear();SetStatus("Building your answer…");cancel.IsEnabled=true;
         sourceDetails.Text="Sources supplied to AI:\n"+string.Join("\n",prompt.Sources);
+        var streamEnded=false;
         try
         {
-            using var client=new AIClient();
+            using var client=answerClientFactory();
             var completedAnswer=await client.GenerateAnswerAsync(key,settings.AnswerModel,prompt.Instructions,prompt.Input,delta=>Dispatcher.InvokeAsync(()=>
-            {if(generation==answerGeneration&&!token.IsCancellationRequested){answer.AppendText(delta);if(answer.VerticalOffset<1)answer.ScrollToHome();}}),token);
+            {if(!streamEnded&&generation==answerGeneration&&!token.IsCancellationRequested){answer.AppendText(delta);if(answer.VerticalOffset<1)answer.ScrollToHome();}}),token);
+            streamEnded=true;
             if(generation==answerGeneration){answer.Text=completedAnswer;SetStatus("Answer ready · speak in your own words");AddHistory("suggestion_not_spoken",completedAnswer);}
         }
         catch(OperationCanceledException){if(generation==answerGeneration)SetStatus("Answer stopped");}
         catch(Exception ex){if(generation==answerGeneration){SetStatus(SafeError(ex));if(answer.Text.Length==0)answer.Text="The answer could not be generated. Your saved stories are available for local rehearsal.";}}
-        finally{if(generation==answerGeneration)cancel.IsEnabled=false;}
+        finally{streamEnded=true;if(generation==answerGeneration)cancel.IsEnabled=false;}
     }
 
     void AddHistory(string speaker,string text){history.Add(new(speaker,text.Length>6000?text[..6000]:text));if(history.Count>12)history.RemoveAt(0);}
@@ -330,9 +355,11 @@ public sealed class MainWindow : Window
     public object ProbeWindowIntegration()
     {
         var initial=WindowIntegration.SetCaptureExcluded(this,true);
+        Background=Tint(.18);var lightTint=WindowIntegration.SetCaptureExcluded(this,true);
+        Background=Tint(.85);var darkTint=WindowIntegration.SetCaptureExcluded(this,true);Background=Tint(settings.OverlayTint);
         Hide();Show();var shown=WindowIntegration.SetCaptureExcluded(this,true);
         WindowState=WindowState.Minimized;WindowState=WindowState.Normal;var restored=WindowIntegration.SetCaptureExcluded(this,true);
-        return new {Initial=initial,AfterHideShow=shown,AfterRestore=restored,ZoomReceiverVerified=false,ApiCallsMade=false};
+        return new {Initial=initial,LightTint=lightTint,DarkTint=darkTint,AfterHideShow=shown,AfterRestore=restored,AllowsTransparency,BackgroundAlpha=((SolidColorBrush)Background).Color.A,AutoAnswerDefault=autoAnswer.IsChecked,AudioSource=audioSources.SelectedItem,ZoomReceiverVerified=false,ApiCallsMade=false};
     }
     public void SavePreview(string path)
     {
@@ -340,9 +367,10 @@ public sealed class MainWindow : Window
         var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));using var stream=File.Create(path);encoder.Save(stream);
     }
     static SolidColorBrush Brush(string hex)=>new((Color)ColorConverter.ConvertFromString(hex));
+    static SolidColorBrush Tint(double strength)=>new(Color.FromArgb((byte)(Math.Clamp(strength,.18,.85)*255),14,21,32));
     static TextBlock Label(string text,double size,Brush brush)=>new(){Text=text,FontSize=size,Foreground=brush,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,2,0,4)};
     static TextBlock Section(string text)=>new(){Text=text,FontSize=10,Foreground=Muted,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,17,0,8)};
-    static TextBox Input(string text,double size)=>new(){Text=text,FontSize=size,Foreground=Ink,Background=Brush("#111B29"),BorderBrush=Brush("#30415A"),BorderThickness=new Thickness(1),Padding=new Thickness(10),TextWrapping=TextWrapping.Wrap,VerticalScrollBarVisibility=ScrollBarVisibility.Auto,AcceptsReturn=true};
+    static TextBox Input(string text,double size)=>new(){Text=text,FontSize=size,Foreground=Ink,Background=Brush("#40111B29"),BorderBrush=Brush("#708898AD"),BorderThickness=new Thickness(1),Padding=new Thickness(10),TextWrapping=TextWrapping.Wrap,VerticalScrollBarVisibility=ScrollBarVisibility.Auto,AcceptsReturn=true};
     static Button Button(string text,bool primary=false)
     {
         var button=new Button{Content=text,Foreground=primary?BackgroundInk:Ink,Background=primary?Accent:Brush("#26354A"),BorderThickness=new Thickness(0),Padding=new Thickness(12,8,12,8),Margin=new Thickness(0,0,6,0),Cursor=Cursors.Hand,FontSize=12,MinHeight=30};

@@ -11,13 +11,28 @@ public sealed class LocalSettings
     public string DeviceId { get; set; } = "";
     public string AnswerModel { get; set; } = "gpt-6.1-sol";
     public string TranscriptionModel { get; set; } = "gpt-live-transcribe";
-    public bool AutoAnswer { get; set; }
+    public bool AutoAnswer { get; set; } = true;
+    public string AudioSource { get; set; } = "Zoom";
+    public double OverlayTint { get; set; } = 0.42;
+    public int ExperienceVersion { get; set; } = 2;
     public bool CaptureExcluded { get; set; } = true;
     public static string SettingsDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "JobSearchOS.InterviewAssistant");
     public static LocalSettings Load()
     {
-        try { return JsonSerializer.Deserialize<LocalSettings>(File.ReadAllText(Path.Combine(SettingsDirectory,"settings.json"))) ?? new(); }
+        try
+        {
+            return Parse(File.ReadAllText(Path.Combine(SettingsDirectory,"settings.json")));
+        }
         catch { return new(); }
+    }
+    public static LocalSettings Parse(string json)
+    {
+        var settings=JsonSerializer.Deserialize<LocalSettings>(json) ?? new();
+        using var document=JsonDocument.Parse(json);
+        if(document.RootElement.ValueKind==JsonValueKind.Object&&!document.RootElement.TryGetProperty("ExperienceVersion",out _))settings.AutoAnswer=true;
+        settings.ExperienceVersion=2;
+        settings.OverlayTint=double.IsFinite(settings.OverlayTint)?Math.Clamp(settings.OverlayTint,.18,.85):.42;
+        return settings;
     }
     public void Save()
     {

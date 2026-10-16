@@ -3,13 +3,23 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using InterviewAssistant.Models;
+using InterviewAssistant;
 using InterviewAssistant.Services;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+
+if(args.Contains("--tone-child"))
+{
+    using var e=new MMDeviceEnumerator();using var d=e.GetDefaultAudioEndpoint(DataFlow.Render,Role.Multimedia);
+    using var output=new WasapiOut(d,AudioClientShareMode.Shared,false,100);
+    output.Init(new SignalGenerator(48000,2){Gain=.08,Frequency=440,Type=SignalGeneratorType.Sin}.ToWaveProvider());
+    Console.WriteLine("READY");Console.ReadLine();output.Play();Console.WriteLine("PLAYING");Console.ReadLine();output.Stop();return 0;
+}
 
 var failures = 0;
 var passed = 0;
@@ -141,6 +151,52 @@ await Test("Invalid profiles fail before changing the session",()=>
     var file=Path.GetTempFileName();try{File.WriteAllText(file,"{\"Name\":\"Example\",\"Facts\":null}");try{ProfileRepository.Load(file);throw new Exception("Invalid profile was accepted");}catch(InvalidDataException){}}
     finally{File.Delete(file);}return Task.CompletedTask;
 });
+await Test("Automatic Zoom capture and a translucent tint are the new defaults",()=>
+{
+    var defaults=new LocalSettings();Check(defaults.AutoAnswer&&defaults.AudioSource=="Zoom"&&defaults.OverlayTint>0&&defaults.OverlayTint<1,"Checklist defaults missing");
+    var migrated=LocalSettings.Parse("{\"AutoAnswer\":false,\"OverlayTint\":4}");Check(migrated.AutoAnswer&&migrated.OverlayTint==.85,"Old default was not migrated or tint was not bounded");
+    var manual=LocalSettings.Parse("{\"AutoAnswer\":false,\"ExperienceVersion\":2}");Check(!manual.AutoAnswer,"Explicit manual mode did not persist");return Task.CompletedTask;
+});
+await Test("Completed questions auto-answer, manual mode waits, and new speech cancels the pending answer",async()=>
+{
+    var done=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+    var thread=new Thread(()=>
+    {
+        var app=new System.Windows.Application();
+        using var handler=new StubHandler(Event(new{type="response.output_text.delta",delta="Test answer"})+Complete());using var http=new HttpClient(handler);
+        var window=new MainWindow(Path.Combine(AppContext.BaseDirectory,"profile.example.json"),true,()=>new AIClient(http)){ShowActivated=false,WindowState=System.Windows.WindowState.Minimized};
+        window.Loaded+=async(_,_)=>
+        {
+            try
+            {
+                var flags=BindingFlags.Instance|BindingFlags.NonPublic;
+                typeof(MainWindow).GetField("key",flags)!.SetValue(window,"local-test-value");
+                typeof(MainWindow).GetField("listening",flags)!.SetValue(window,true);
+                var toggle=(System.Windows.Controls.CheckBox)typeof(MainWindow).GetField("autoAnswer",flags)!.GetValue(window)!;
+                var answer=(System.Windows.Controls.TextBox)typeof(MainWindow).GetField("answer",flags)!.GetValue(window)!;
+                var status=(System.Windows.Controls.TextBlock)typeof(MainWindow).GetField("status",flags)!.GetValue(window)!;
+                async Task AwaitAnswer(int count)
+                {
+                    var watch=Stopwatch.StartNew();while(watch.ElapsedMilliseconds<5000&&(handler.Requests<count||answer.Text!="Test answer"))await Task.Delay(50);
+                    Check(handler.Requests==count&&answer.Text=="Test answer",$"Expected answer {count}; requests={handler.Requests}; auto={toggle.IsChecked}; status={status.Text}");
+                }
+                void Hear(string text,bool final)=>typeof(MainWindow).GetMethod("OnTranscript",flags)!.Invoke(window,[text,final]);
+                Hear("How did you improve payment reliability?",true);await AwaitAnswer(1);
+                toggle.IsChecked=false;Hear("What did you measure?",true);await Task.Delay(1500);
+                Check(handler.Requests==1,"Manual mode generated an automatic answer");
+                await (Task)typeof(MainWindow).GetMethod("AnswerAsync",flags)!.Invoke(window,null)!;Check(handler.Requests==2,"Manual button path failed");
+                toggle.IsChecked=true;Hear("How did you prioritize?",true);await Task.Delay(100);Hear("And",false);await Task.Delay(1400);
+                Check(handler.Requests==2,"New speech did not cancel the pending answer");
+                Hear("And what was the trade-off?",true);await AwaitAnswer(3);
+                done.TrySetResult();
+            }
+            catch(Exception ex){done.TrySetException(ex);}
+            finally{app.Shutdown();}
+        };
+        app.Run(window);
+    }){IsBackground=true};thread.SetApartmentState(ApartmentState.STA);thread.Start();
+    await done.Task.WaitAsync(TimeSpan.FromSeconds(20));thread.Join(2000);
+});
 
 if(args.Contains("--audio"))await Test("Native output loopback receives a generated tone and stops cleanly",async()=>
 {
@@ -153,15 +209,36 @@ if(args.Contains("--audio"))await Test("Native output loopback receives a genera
     Check(failure==null,failure??"");Check(chunks>=15&&peak>0.001f,$"No test signal: chunks={chunks}, peak={peak:F4}");
     Check(!capture.IsRunning,"Capture did not stop");Console.WriteLine($"  PCM chunks={chunks}; peak={peak:F4}; audio saved=false; API calls=false");
 });
+if(args.Contains("--audio"))await Test("Application loopback includes target audio and excludes a different process",async()=>
+{
+    var start=new ProcessStartInfo(Environment.ProcessPath!,"--tone-child"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true};
+    using var child=Process.Start(start)!;
+    try
+    {
+        Check(await child.StandardOutput.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(10))=="READY","Tone child did not start");
+        using var enumerator=new MMDeviceEnumerator();using var device=enumerator.GetDefaultAudioEndpoint(DataFlow.Render,Role.Multimedia);
+        using var unrelated=new WasapiOut(device,AudioClientShareMode.Shared,false,100);
+        unrelated.Init(new SignalGenerator(48000,2){Gain=.08,Frequency=880,Type=SignalGeneratorType.Sin}.ToWaveProvider());
+        using var capture=new ProcessLoopbackCapture();var phase=0;var excludedPeak=0f;var includedPeak=0f;string? error=null;
+        capture.Failed+=message=>error=message;capture.LevelChanged+=level=>{if(Volatile.Read(ref phase)==0)excludedPeak=Math.Max(excludedPeak,level);else includedPeak=Math.Max(includedPeak,level);};
+        await capture.StartAsync(child.Id);unrelated.Play();await Task.Delay(1000);
+        Volatile.Write(ref phase,1);await child.StandardInput.WriteLineAsync("play");await child.StandardInput.FlushAsync();
+        Check(await child.StandardOutput.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(5))=="PLAYING","Tone child did not play");await Task.Delay(1200);
+        unrelated.Stop();capture.Dispose();await child.StandardInput.WriteLineAsync("stop");await child.StandardInput.FlushAsync();await child.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        Check(error==null,error??"");Check(excludedPeak<.001f,$"Unrelated application leaked: {excludedPeak:F4}");Check(includedPeak>.005f,$"Target audio missing: {includedPeak:F4}");
+        Console.WriteLine($"  excluded peak={excludedPeak:F4}; target peak={includedPeak:F4}; audio saved=false; API calls=false");
+    }
+    finally {if(!child.HasExited)child.Kill();}
+});
 Console.WriteLine($"{passed} passed; {failures} failed. No live API requests.");
 return failures==0?0:1;
 
 sealed class StubHandler(string stream,HttpStatusCode status=HttpStatusCode.OK):HttpMessageHandler
 {
-    public string? Body {get;private set;}public bool Authenticated{get;private set;}public string? Endpoint{get;private set;}
+    public string? Body {get;private set;}public bool Authenticated{get;private set;}public string? Endpoint{get;private set;}public int Requests{get;private set;}
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();Body=await request.Content!.ReadAsStringAsync(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();Requests++;Body=await request.Content!.ReadAsStringAsync(cancellationToken);
         Authenticated=request.Headers.Authorization?.Scheme=="Bearer";Endpoint=request.RequestUri?.ToString();
         return new HttpResponseMessage(status){Content=new StringContent(stream,Encoding.UTF8,"text/event-stream")};
     }

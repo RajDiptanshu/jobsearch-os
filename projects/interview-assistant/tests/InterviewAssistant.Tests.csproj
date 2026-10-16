@@ -9,5 +9,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../src/InterviewAssistant.csproj" />
+    <None Include="../samples/profile.example.json" Link="profile.example.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

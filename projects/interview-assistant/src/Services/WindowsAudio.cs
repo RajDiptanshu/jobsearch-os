@@ -8,12 +8,20 @@ namespace InterviewAssistant.Services;
 
 public sealed record AudioDeviceInfo(string Id, string Name);
 
+public interface IAudioCaptureSource : IDisposable
+{
+    event Action<byte[]>? PcmAvailable;
+    event Action<float>? LevelChanged;
+    event Action<string>? Failed;
+    bool IsRunning { get; }
+}
+
 /// <summary>
 /// Captures every application playing through one Windows output endpoint, including
 /// headphones. Select the same endpoint as Zoom's speaker setting. No audio is written
 /// to disk. Events run on background threads; subscribers must enqueue work quickly.
 /// </summary>
-public sealed class AudioCaptureService : IDisposable
+public sealed class AudioCaptureService : IAudioCaptureSource
 {
     public const int SampleRate = 24_000;
     public const int ChunkMilliseconds = 50;
