@@ -1,0 +1,277 @@
+# PM answer skills
+
+Experienced technical PM reasoning means making defensible decisions and explaining their mechanisms. It does not mean inventing years of experience, research, architecture ownership or results.
+
+The app retrieves relevant material from 579 practice entries, 10 worked cases and private preparation notes. It does not train or fine-tune a model. Company attributions in the original bank are unverified. Examples below are hypothetical, not personal career claims.
+
+Write an actual answer, rather than a recital of these checklists. Start with a decision or a consequential, specific question. Each technical detail should explain how a user/business failure is prevented. Keep references, uncertainty and preparation gaps outside the spoken answer.
+
+## Product judgement and workflow design
+
+- Open with a particular user, situation and working product thesis. Ask only a clarification that would materially change the answer; proceed on an explicit assumption if needed.
+- Trace the existing journey to an observable failure: what does the user try, what information or action is missing, and what happens next? Distinguish user, buyer and operational participant.
+- Compare two credible alternatives against the chosen pain, then pick one. Explain the rejected option fairly and the evidence that would reverse the choice.
+- Walk one complete MVP flow: entry point, inputs, decision, output, exception and recovery. State what is out of scope and why.
+- For a technical feature, explain data availability, latency/freshness, error behaviour and ownership only where they affect the product promise. Do not decorate a consumer case with Kafka or microservices.
+- Define the outcome with a numerator, denominator and time/cohort; choose the experiment unit, contamination risks and one meaningful guardrail. Explain the ship or stop decision.
+
+### Spoken example
+
+For Swiggy, I'd focus on a lunch order between meetings. The customer doesn't just need a shorter ETA; they need to know whether they can rely on it. I'd test a deadline filter before a delivery guarantee, because the filter improves the decision without creating a compensation promise. If we can't estimate the tail reliably, I wouldn't show the order as deadline-safe.
+
+### Worked reasoning
+
+Hypothetical deadline filter: the customer enters a deadline before browsing. Eligible meals have a conservative arrival window based on restaurant preparation and local delivery capacity. Recheck eligibility at checkout; a stale estimate requires reconfirmation. If nothing qualifies, say so instead of relaxing the deadline silently. Compare deadline success among all eligible randomized sessions, conversion and contribution margin; track cancellation, refunds, selection and delivery-partner pressure. Use geographic or time-block randomization if shared capacity contaminates a user-level test. Start with one meal occasion and city zone, not an unbounded guarantee.
+
+### Avoid
+
+- Designing for everyone
+- Listing features without selecting a pain
+- Inventing customer interviews
+- Assuming an ETA is a guarantee
+- Ignoring marketplace supply or operational cost
+
+### Likely probes
+
+- Why this user before the other segment?
+- What happens when the prediction is wrong?
+- What observation would make you kill this idea?
+
+## Metric design, experimentation and business diagnosis
+
+- Start with the decision the metric must support and the unit receiving value: person, account, pipeline, order or transaction.
+- Define value completion and an eligible denominator, observation window and cohort maturity. Distinguish activity from useful outcomes.
+- Build a small causal tree, not a dashboard list. Explain which input changes which outcome and where the business cost enters.
+- Specify event instrumentation, deduplication key and source of truth. Distinguish event-time and processing-time if delayed events could move the metric.
+- For experiments state randomization unit, minimum observable effect concept, sample/seasonality considerations and guardrail stop conditions. Do not invent a statistically significant result or universal test duration.
+- For ratios and averages test composition changes before declaring behaviour changed; pair percentages with absolute counts.
+
+### Spoken example
+
+For an ingestion product, I wouldn't call source connection activation. I'd count a workspace only after its selected data is usable in the destination and a second incremental sync succeeds. The denominator would be new eligible workspaces in the same signup cohort, with enough time to finish that journey. That keeps an OAuth success from looking like customer value.
+
+### Worked reasoning
+
+Hypothetical trial activation: activated workspaces within seven days / eligible new workspaces in a mature signup cohort; seven days is a working definition to validate against customer usage, not a published commitment. Diagnostics: source authorization, object selection, initial-load completion, reconciled data, second sync. Business check: paid conversion and retained production usage by acquisition channel and connector. Guardrails: incorrect data incidents, source load and cost per activated workspace. An auth-failure segment suggests prerequisites and recovery; a post-activation churn segment suggests reliability or weak value, not more top-of-funnel spend.
+
+### Avoid
+
+- Using successful sync as a proxy for correct data
+- Comparing mature paid cohorts to unfinished trials
+- Confusing percentage points and relative percentage
+- Ignoring retries in the denominator
+
+### Likely probes
+
+- What would you look at every morning?
+- How could this metric be gamed?
+- Would the same experiment unit work on a marketplace?
+
+## Root cause and incident decisions
+
+- For an active incident, contain irreversible customer harm before exhaustive diagnosis; preserve evidence and name the next useful customer update.
+- Clarify the exact metric or symptom, magnitude, time window, baseline and whether reporting changed. Do not keep asking if the question already specifies them.
+- Localize the break using a funnel or system boundaries and a discriminating segment: version, tenant, source, region, cohort or dependency.
+- Give a prioritized hypothesis tree and a check that would separate each branch. Clearly distinguish 'if the evidence shows' from an actual observation.
+- Choose a reversible mitigation conditional on evidence; explain why restarting, rolling back or replaying could make things worse.
+- Define restoration using correctness and user value, not just green status. Follow with prevention, ownership, alerts and a recurrence metric.
+
+### Spoken example
+
+I wouldn't restart the pipeline yet. First I'd find the last source position we durably captured and the last batch the destination committed. If extraction has advanced but the destination hasn't, the backlog is downstream. If neither has advanced, I'd check authorization, rate limiting and source-log availability. Those lead to different fixes, and a blind reset could lose the recovery boundary.
+
+### Worked reasoning
+
+Six-hour stale pipeline: scope affected tenants/objects and critical reports, preserve cursor and buffered events, separate extraction lag from queue lag and destination visibility. Check 401/403, 429, upstream log retention, failed events, schema changes, warehouse capacity and load acknowledgements. If durable events remain, repair the failing consumer and replay idempotently while isolating a poison record. If source history expired before capture, agree a resnapshot/backfill plan and reconcile overlap; do not claim a restart restores unavailable history. Recovery means reconciled records plus sustained freshness, with an explicit customer update and prevention owner.
+
+### Avoid
+
+- Inventing the interviewer confirming a root cause
+- Treating correlation with a release as proof
+- Blindly retrying permanent errors
+- Restarting after source logs expired
+- A generic internal/external list with no tests
+
+### Likely probes
+
+- Tracking is correct; where do you look next?
+- Rollback itself damages downstream data; now what?
+- The dashboard is green but customers still report missing rows. What proves recovery?
+
+## Auditable estimation and unit economics
+
+- State units, geography, period and whether estimating demand, capacity, revenue or transactions. Prevent household/person/order double counting.
+- Choose an equation whose terms can be estimated independently and say why it fits the question.
+- Use round working assumptions, label them assumptions, and calculate every stage with units. Never present old anchor figures as current verified facts.
+- Give a low/base/high range by changing the dominant assumption, not by adding an unexplained percentage around the answer.
+- Cross-check with a different mechanism such as restaurant throughput, delivery capacity or household spending.
+- Identify the most valuable external datum to obtain next and how it would change the decision.
+
+### Spoken example
+
+I'll estimate daily orders, rather than unique customers. As a working base, suppose there are two million people in the addressable segment, a quarter order in a month, and each places six orders. That gives three million monthly orders, or about a hundred thousand a day. I'd check that against restaurant throughput before trusting the number.
+
+### Worked reasoning
+
+All figures are illustrative: 2 million addressable people × 25% monthly ordering × 6 orders/month = 3 million orders/month ≈ 100,000/day. A low case of 20% × 4 gives about 53,000/day; a high case of 30% × 8 gives 160,000/day. If 4,000 active restaurants each fulfill 25 delivery orders/day, supply implies 100,000/day, an independent consistency check. Active ordering share and frequency dominate uncertainty; population precision is less valuable. State the city/geographic boundary and distinguish platform orders from the entire delivery market.
+
+### Avoid
+
+- Multiplying all population by heavy-user behaviour
+- Confusing monthly and daily units
+- False precision
+- Calling an illustrative estimate actual company volume
+
+### Likely probes
+
+- You are off by ten times; which factor do you check first?
+- Can supply support your demand estimate?
+- How much uncertainty matters to the decision?
+
+## Commercial strategy, prioritization and build/buy
+
+- Commit to a provisional recommendation early, tied to the objective, time horizon and binding constraint.
+- Decompose the business into acquisition, activation, retention, expansion, price and delivery cost where relevant. Identify the bottleneck before prescribing growth.
+- Compare two or three real alternatives with total cost, time to value, maintenance, customer risk and opportunity cost.
+- Specify the narrow initial bet and the sequence of investments, including what to defer.
+- Make economics explicit: net contribution, gross margin, support cost, infrastructure consumption or vendor dependency rather than top-line volume alone.
+- Name an observable condition that reverses the recommendation, and a pilot/rollout gate.
+
+### Spoken example
+
+I'd use an SDK for commodity extraction, but I'd keep the guarantees customers pay us for under our control: incremental correctness, recovery and clear failures. The cheaper license isn't automatically the cheaper product if every source update creates a support incident. I'd pilot the two most demanding source patterns before committing the roadmap.
+
+### Worked reasoning
+
+Connector build/buy: compare source coverage, delete/update semantics, schema policy, token handling, upgrade cadence, rate-limit behaviour, replay, observability and contractual/data access risk. Include two years of engineering maintenance, incidents and migration cost, not just integration effort. Pilot high-volume pagination and a source schema change, and score correctness, support time and time-to-first-sync. Buy a component if it passes; retain the adapter contract and recovery state to preserve an exit path. Build differentiating or poorly supported sources selectively.
+
+### Avoid
+
+- Recommending everything
+- Choosing build/buy on license price alone
+- Ignoring source maintenance
+- Using a scoring framework instead of making a choice
+
+### Likely probes
+
+- Why now? What would you stop doing?
+- A competitor ships first; does the recommendation change?
+- What is the exit cost if the SDK vendor fails?
+
+## Technical product and platform judgement
+
+- Identify the customer promise and contract first: who calls or configures the system, what it guarantees, and what it explicitly cannot guarantee.
+- Walk a concrete lifecycle with data/state boundaries: input, authentication/permissions, validation, source cursor, durable buffer, normalization, sink acknowledgement and customer-visible state as relevant.
+- Explain failure semantics: timeout versus permanent rejection, bounded retry/backoff with jitter, idempotency/deduplication keys, ordering/versioning and poison-record isolation. Mention only mechanisms that solve a named problem.
+- Separate source checkpoint after durable capture from downstream acknowledgement. Do not promise exactly-once end to end from a broker setting; preserve replayability and idempotent effects.
+- Make schema changes, late data, deletion guarantees, source retention, tenant isolation, least privilege and backfill explicit where relevant.
+- Choose a trade-off using freshness/latency, correctness, availability, API quotas, warehouse cost and operational burden. Convert it into observable acceptance criteria and rollout/rollback behaviour.
+
+### Spoken example
+
+The connector's job isn't just to call an endpoint. It has to remember where it safely got to and recover without silently skipping or duplicating business records. I'd persist the source cursor after durable capture, then make destination writes idempotent. If a load commits but its acknowledgement is lost, replay should converge to the same record rather than create another one.
+
+### Worked reasoning
+
+Hypothetical SaaS connector: scope two customer-critical objects. Confirm OAuth scopes, pagination, incremental cursor and whether updates/deletes are actually exposed. Snapshot with a captured boundary, then overlap incremental windows or use authoritative change events; dedupe by stable record/event identity and version. Persist normalized events before acknowledging source progress. Rate-limit by source/tenant with bounded backoff; refresh credentials safely; isolate malformed records and incompatible schema changes without silently corrupting valid rows. Upsert at the sink with version/order protection, reconcile counts and keys after backfill, and expose extraction lag separately from destination lag. Test crash/replay, expired tokens, 429, deleted source records and schema changes before expanding.
+
+### Avoid
+
+- Architecture name-dropping
+- Timestamp polling claimed as full CDC including deletes
+- Advancing a checkpoint across unpersisted data
+- Claiming end-to-end exactly-once without boundaries
+- Mixing proposed design with systems the candidate actually built
+
+### Likely probes
+
+- The sink committed but the acknowledgement timed out. What happens on retry?
+- How do you backfill while new updates arrive?
+- A field changes from numeric to string; do you coerce, block or quarantine?
+
+## Credible ownership and judgement stories
+
+- Choose one supported story and state the concrete decision, stakes and candidate's actual ownership in the first few sentences.
+- Keep context short; spend the answer on what the candidate decided, why the alternative lost, how they collaborated and what changed.
+- Use only selected CV evidence for past facts. Handbook narratives can suggest questions or explain a proposed approach but cannot establish new implementation, incidents or achievements.
+- Distinguish I decided/spec'ed/measured from engineers implemented; preserve shared ownership and do not invent a named stakeholder dispute.
+- Use a qualified result with the right denominator/timeframe. If the decision mechanism is missing, give the supported part and put the missing detail in NOTES; do not manufacture a rich anecdote.
+- End with one specific lesson and what the candidate would change, phrased as a reflection/proposal rather than an invented second launch.
+
+### Spoken example
+
+The decision I'd highlight is moving the control earlier in the journey. The important trade-off was stopping known repeat fraud without blocking a genuine customer who shared an identifier. I would anchor the past-work description in the supported source facts, and discuss any additional matching or latency policy as a design choice to confirm, not pretend it shipped.
+
+### Worked reasoning
+
+Use a source-backed decision and result, not this generic example as candidate history. Explain why the control or workflow was needed, the exact scope owned, a defensible mechanism at the supported level, and the qualified result. Do not merge different fraud cohorts, alternative CV figures or CCV pilot targets. Proposed architecture may enrich a 'how would you design it?' follow-up; it cannot fill a 'what exactly did you ship?' gap.
+
+### Avoid
+
+- STAR headings read aloud
+- We-only narration
+- Heroic made-up conflict
+- Turning targets into results
+- Inflating PM tenure to sound senior
+
+### Likely probes
+
+- What did you personally own?
+- What did engineering disagree with?
+- What was the original denominator and attribution?
+
+## Positioning and role motivation
+
+- Lead with the actual product/engineering arc and a supported decision/result
+- Connect a specific target-role problem to a transferable skill
+- Acknowledge a real gap without relabelling adjacent experience as direct platform PM tenure
+- Keep motivation positive and concrete; avoid prestige and generic passion claims
+- Do not invent competing offers, salary figures, years or personal preferences
+
+### Spoken example
+
+The connection I'd make is reliability and integration judgement. Moving operational data correctly involves some of the same product questions as payment integrations: what happens when a dependency is slow, how do we recover safely, and how do users know they can trust the result? I'd be clear about which of those problems I've actually worked on and which platform concepts I'm learning.
+
+### Worked reasoning
+
+For why-this-role, pair a supported workstream with a target problem and a specific learning gap. A data connector, a fraud adapter and a payment orchestrator are analogous at some boundaries but are not the same product. Do not claim experience owning CDC, warehouse ingestion or a vendor's internal architecture unless the current CV establishes it.
+
+### Avoid
+
+- Claiming five years of PM when evidence says otherwise
+- Generic excited-to-join language
+- Pretending a target JD establishes past experience
+
+### Likely probes
+
+- Why infrastructure after travel?
+- What will you need to learn first?
+
+## Technical PM deep dive and execution
+
+- Choose one supported initiative and its decisive product choice
+- State scope/ownership and what was excluded
+- Trace the actual supported workflow, then label any deeper design alternative as proposed
+- Connect cross-team execution to acceptance criteria, dependencies and rollout risk
+- Defend the result with numerator, denominator, period and attribution limits
+- Answer a probe at its requested depth without restarting the entire story
+
+### Spoken example
+
+I'd separate the product decision from the implementation detail. The important call was which failure we wanted to recover and which risk we would not accept. Then I'd explain the workflow and outcome at the level the evidence supports, rather than claim that picking Kafka or a particular database was my contribution.
+
+### Worked reasoning
+
+A strong deep dive ties root problem → chosen policy/workflow → acceptance criteria → rollout → supported measurement. Technical depth comes from explaining behaviour under a timeout, partial data or replay, not from asserting a stack. Keep hypothetical recovery policies distinct from the candidate's documented deployed implementation.
+
+### Avoid
+
+- A feature inventory instead of a decision
+- Unsubstantiated infrastructure details
+- Replaying a full case for a short follow-up
+
+### Likely probes
+
+- Why did this need a PM?
+- What did you deliberately not build?
+- How did you know the rollout was safe?
