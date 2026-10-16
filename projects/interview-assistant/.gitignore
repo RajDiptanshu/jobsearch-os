@@ -1,0 +1,13 @@
+bin/
+obj/
+publish/
+.vs/
+*.user
+.env
+.env.*
+!.env.example
+private/
+local-data/
+*.log
+test-results/
+*.zip

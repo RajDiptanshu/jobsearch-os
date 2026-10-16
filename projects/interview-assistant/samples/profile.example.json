@@ -1,0 +1,59 @@
+{
+  "Name": "Alex Example",
+  "Role": "Product Manager",
+  "Summary": "Entirely fictional demonstration profile. Alex has four years in product and two years in software engineering at invented companies. None of the names, employers, results or experiences describes a real candidate.",
+  "TargetCompany": "Example Workflow Co. (fictional)",
+  "TargetRole": "Platform Product Manager",
+  "TargetJobDescription": "FICTIONAL SAMPLE: Own integrations for a workflow product, work directly with customers, improve reliability and explain technical trade-offs. This text is demonstration data, not a live job posting.",
+  "Language": "English",
+  "SpeakingStyle": "Natural first-person language, short sentences, concrete ownership and outcomes. Keep proposed work separate from delivered experience.",
+  "Facts": [
+    { "Id": "demo-tenure", "Text": "Fictional Alex has four years of product management and two years of engineering experience.", "Source": "demo-cv:summary", "Evidence": "CV" },
+    { "Id": "demo-gap", "Text": "This fictional profile does not establish ownership of a real-time data platform.", "Source": "demo-notes:limitations", "Evidence": "VERIFY" }
+  ],
+  "Stories": [
+    {
+      "Id": "demo-introduction",
+      "Title": "Fictional introduction",
+      "Tags": ["introduction", "background", "tell me about yourself"],
+      "Facts": [
+        { "Id": "demo-intro-fact", "Text": "Fictional Alex is a PM at Example Workflow Co., working on integration setup and support workflows.", "Source": "demo-cv:experience", "Evidence": "CV" }
+      ],
+      "Caveats": ["All facts and spoken examples in this file are invented for demonstration. Replace with your own verified information."],
+      "SpokenAnswer": "I'm Alex, a product manager at Example Workflow Co. I have four years in product management and two years in software engineering. My product work focuses on integration setup and support workflows. One project improved completion of an integration setup journey, while another made failed imports easier for support teams to diagnose. I work with engineering and users to define the problem, choose a focused release and measure the result."
+    },
+    {
+      "Id": "demo-setup",
+      "Title": "Fictional integration setup improvement",
+      "Tags": ["integration", "onboarding", "conversion", "customer research"],
+      "Facts": [
+        { "Id": "demo-setup-result", "Text": "Fictional setup-completion rate rose from 58% to 68% over an eight-week observation period after clearer validation and setup guidance.", "Source": "demo-cv:setup-project", "Evidence": "CV" },
+        { "Id": "demo-setup-narrative", "Text": "Fictional interview notes describe customers struggling with configuration-field terminology.", "Source": "demo-notes:setup-project", "Evidence": "TALKING_POINT" },
+        { "Id": "demo-setup-causal", "Text": "No randomized experiment is specified, so the observed improvement is not an established causal test result.", "Source": "demo-notes:setup-project", "Evidence": "VERIFY" }
+      ],
+      "Caveats": ["All numbers are fictional.", "58% to 68% is a 10-percentage-point rise. Do not call this a 10% relative increase.", "Observed pre/post movement does not establish a randomized treatment effect."],
+      "SpokenAnswer": "One project at Example Workflow Co. improved the integration setup journey. We added clearer validation and setup guidance. Over an eight-week observation period, setup completion rose from 58% to 68%, a 10-percentage-point increase. My role was defining the product changes and the completion measure with engineering. I would describe this as an observed improvement, since this example does not establish a randomized experiment."
+    },
+    {
+      "Id": "demo-import-reliability",
+      "Title": "Fictional import diagnostics and a proposed next step",
+      "Tags": ["reliability", "API", "support", "failure modes", "architecture"],
+      "Facts": [
+        { "Id": "demo-import-fact", "Text": "Fictional Alex owned the product requirements for an import-status page with source-specific error messages.", "Source": "demo-cv:import-project", "Evidence": "CV" },
+        { "Id": "demo-import-design", "Text": "Automatic retries with deduplication and exponential backoff are a proposed extension, not a shipped feature in this example.", "Source": "demo-notes:proposed-work", "Evidence": "DESIGN" }
+      ],
+      "Caveats": ["Do not convert the proposed retry architecture into a delivered achievement.", "No measured time-saving or revenue claim is provided."],
+      "SpokenAnswer": "I owned the product requirements for an import-status page that showed source-specific error messages. The scope was making failures understandable to users and support teams. I can explain the intended next step of automatic retries, but it was proposed work in this example, so I wouldn't describe it as delivered. I also don't have a measured time-saving or revenue outcome to quote for this story."
+    }
+  ],
+  "Cautions": [
+    "This entire sample is fictional. Evidence labels demonstrate classification, not verification of a real person.",
+    "CV means a claim in a candidate-provided CV; TALKING_POINT means supplied narrative; DESIGN and VERIFY must not become first-person delivered experience.",
+    "Do not invent personal details, achievements, experiment results or implementation ownership.",
+    "Keep real profiles and source files outside public repositories."
+  ],
+  "Sources": [
+    { "Id": "demo-cv", "Title": "Fictional demonstration CV", "Kind": "FICTIONAL_CV", "LocalPath": "", "Notes": "Invented for this example. No real source file or person." },
+    { "Id": "demo-notes", "Title": "Fictional preparation notes", "Kind": "FICTIONAL_NARRATIVE", "LocalPath": "", "Notes": "Invented narrative, design ideas and uncertainty labels for demonstration." }
+  ]
+}
