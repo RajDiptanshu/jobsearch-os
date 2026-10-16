@@ -15,6 +15,17 @@ public sealed class CandidateProfile
     public List<ProfileFact> Facts { get; set; } = [];
     public List<string> Cautions { get; set; } = [];
     public List<ProfileSource> Sources { get; set; } = [];
+    public List<PreparationNote> PreparationNotes { get; set; } = [];
+}
+
+/// <summary>Study material, never evidence of employment, implementation or achieved outcomes.</summary>
+public sealed class PreparationNote
+{
+    public string Id { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string Kind { get; set; } = "REFERENCE";
+    public string Source { get; set; } = "";
+    public string Text { get; set; } = "";
 }
 
 public sealed class ExperienceStory

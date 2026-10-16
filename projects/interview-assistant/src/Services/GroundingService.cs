@@ -132,13 +132,14 @@ public static class GroundingService
     }
 
     private static HashSet<string> Tokens(string text) => Regex.Matches(text.ToLowerInvariant(), @"[\p{L}\p{N}][\p{L}\p{N}+]*")
-        .Select(x => x.Value).Where(x => x.Length > 2 && !StopWords.Contains(x)).Select(NormalizeToken).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        .Select(x => x.Value).Where(x => (x.Length > 2 || x is "ai" or "pm") && !StopWords.Contains(x)).Select(NormalizeToken).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     private static string NormalizeToken(string token) => token switch
     {
         "recovery" or "recovered" or "recoverable" => "recover",
         "retries" or "retrying" or "retried" => "retry",
         "routing" or "routes" or "routed" => "route",
+        "assistant" or "copilot" => "copilot",
         _ when token.Length>4 && token.EndsWith('s') => token[..^1],
         _ => token
     };

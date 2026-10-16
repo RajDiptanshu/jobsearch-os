@@ -376,7 +376,9 @@ public sealed class MainWindow : Window
         if(text.Length>8000){SetStatus("Please shorten the question to fewer than 8,000 characters.");return;}
         pendingQuestion="";answerCts?.Cancel();answerCts=new CancellationTokenSource();var token=answerCts.Token;var generation=Interlocked.Increment(ref answerGeneration);
         if(!history.Any(x=>x.Speaker=="interviewer"&&x.Text==text))AddHistory("interviewer",text);
-        var plan=AnswerFlow.Build(profile,text,history,lengths.SelectedItem?.ToString()??"Detailed",string.IsNullOrWhiteSpace(settings.FavouriteProduct)?profile.CaseExampleProduct:settings.FavouriteProduct);
+        AnswerPlan plan;
+        try{plan=AnswerFlow.Build(profile,text,history,lengths.SelectedItem?.ToString()??"Detailed",string.IsNullOrWhiteSpace(settings.FavouriteProduct)?profile.CaseExampleProduct:settings.FavouriteProduct);}
+        catch(Exception){SetStatus("Preparation files are missing or invalid. Re-extract the complete app folder.");return;}
         var prompt=plan.Prompt;var model=plan.Kind is QuestionKind.Experience or QuestionKind.General?settings.AnswerModel:settings.CaseModel;
         currentOpening=plan.Opening;rawAnswer="";pageIndex=0;generating=true;
         suppliedSources="Sources supplied to AI:\n"+string.Join("\n",prompt.Sources);document.Update("",currentOpening);RenderPage();
@@ -385,8 +387,8 @@ public sealed class MainWindow : Window
         try
         {
             using var client=answerClientFactory();
-            var completedAnswer=await client.GenerateAnswerAsync(key,model,prompt.Instructions,prompt.Input,delta=>Dispatcher.InvokeAsync(()=>
-            {if(!streamEnded&&generation==answerGeneration&&!token.IsCancellationRequested){rawAnswer+=delta;document.Update(rawAnswer,currentOpening);RenderPage();}}),token);
+            var completedAnswer=await AnswerFlow.GenerateAsync(client,key,model,plan,snapshot=>Dispatcher.InvokeAsync(()=>
+            {if(!streamEnded&&generation==answerGeneration&&!token.IsCancellationRequested){rawAnswer=snapshot;document.Update(rawAnswer,currentOpening);RenderPage();}}),token);
             streamEnded=true;
             if(generation==answerGeneration){rawAnswer=completedAnswer;generating=false;document.Update(rawAnswer,currentOpening,true);RenderPage();SetStatus("Ready · Next continues");AddHistory("suggestion_not_spoken",string.Join("\n",document.Pages.Select(p=>p.Text))+"\n"+document.Notes);}
         }

@@ -89,6 +89,9 @@ public static class ProfileRepository
             throw new InvalidDataException("Each story needs facts, tags, caveats and evidence labels.");
         if(profile.Sources.Any(s=>s is null || string.IsNullOrWhiteSpace(s.Id)))
             throw new InvalidDataException("Each source needs an ID.");
+        profile.PreparationNotes??=[];
+        if(profile.PreparationNotes.Count>500||profile.PreparationNotes.Any(n=>n is null||string.IsNullOrWhiteSpace(n.Id)||n.Text is null||n.Title is null||n.Source is null||n.Text.Length>12000))
+            throw new InvalidDataException("Preparation notes need IDs and bounded reference text.");
         return profile;
     }
 }

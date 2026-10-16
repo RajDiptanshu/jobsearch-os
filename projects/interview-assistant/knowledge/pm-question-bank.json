@@ -1,0 +1,3337 @@
+{
+  "version": 1,
+  "provenance": "Practice prompts copied from this repository. Reported interview/company attributions have not been independently verified. Case numbers are hypothetical premises, not career evidence or market data.",
+  "sources": [
+    {
+      "path": "public/coach/questions.js",
+      "sha256": "934723817bbf9e7bf9acec2c3435439ee11ac4554473821ad6f540e375c6e4b3"
+    },
+    {
+      "path": "public/coach/data.js",
+      "sha256": "8e8744c66fa600f7142b3ffcee8b8a2e645516adaf58a023114d7a05b143a863"
+    }
+  ],
+  "questions": [
+    {
+      "id": "design-1",
+      "category": "design",
+      "question": "For a retail store, users are frequently complaining about long queues during checkout. What strategy would you use to improve the experience in the short term and long term?"
+    },
+    {
+      "id": "design-2",
+      "category": "design",
+      "question": "How would you build a product on Facebook for blood donation?"
+    },
+    {
+      "id": "design-3",
+      "category": "design",
+      "question": "How would you design a \"Google Refrigerator\"?"
+    },
+    {
+      "id": "design-4",
+      "category": "design",
+      "question": "Explain some new Alexa skillsets you would roll out and why."
+    },
+    {
+      "id": "design-5",
+      "category": "design",
+      "question": "Design an application launching in the US marketplace that enables patients to find doctors."
+    },
+    {
+      "id": "design-6",
+      "category": "design",
+      "question": "Design an experience for getting book recommendations on Facebook. How would you measure success?"
+    },
+    {
+      "id": "design-7",
+      "category": "design",
+      "question": "You are a new PM at Google Pay. Design a feature for paying credit card bills."
+    },
+    {
+      "id": "design-8",
+      "category": "design",
+      "question": "What innovative new product can make park gatherings be more social, with strangers?"
+    },
+    {
+      "id": "design-9",
+      "category": "design",
+      "question": "Design a vending machine for blind people."
+    },
+    {
+      "id": "design-10",
+      "category": "design",
+      "question": "How would you go about designing a skip feature for a video streaming service?"
+    },
+    {
+      "id": "design-11",
+      "category": "design",
+      "question": "As a Product Manager on Facebook Newsfeed, how would you decide whether to show an advertisement or the \"People You May Know\" widget?"
+    },
+    {
+      "id": "design-12",
+      "category": "design",
+      "question": "How would you design a gardening app?"
+    },
+    {
+      "id": "design-13",
+      "category": "design",
+      "question": "Design a digital payments system for rural India."
+    },
+    {
+      "id": "design-14",
+      "category": "design",
+      "question": "Design a fridge for kids."
+    },
+    {
+      "id": "design-15",
+      "category": "design",
+      "question": "How would you design an ETA system for Lyft drivers?"
+    },
+    {
+      "id": "design-16",
+      "category": "design",
+      "question": "Design Lyft for kids."
+    },
+    {
+      "id": "design-17",
+      "category": "design",
+      "question": "Design a driverless car pick-up service for kids."
+    },
+    {
+      "id": "design-18",
+      "category": "design",
+      "question": "Design a better way to find a roommate in a new city."
+    },
+    {
+      "id": "design-19",
+      "category": "design",
+      "question": "Design a refrigerator for the blind."
+    },
+    {
+      "id": "design-20",
+      "category": "design",
+      "question": "Design a washing machine for Google."
+    },
+    {
+      "id": "design-21",
+      "category": "design",
+      "question": "Design a Facebook tool for the Olympics."
+    },
+    {
+      "id": "design-22",
+      "category": "design",
+      "question": "Build a Google product that enables people to learn new skills."
+    },
+    {
+      "id": "design-23",
+      "category": "design",
+      "question": "Design dynamic pricing for Lyft."
+    },
+    {
+      "id": "design-24",
+      "category": "design",
+      "question": "How would you go about designing a dashboard of call quality for WhatsApp?"
+    },
+    {
+      "id": "design-25",
+      "category": "design",
+      "question": "Create a smartphone for a 6-year-old."
+    },
+    {
+      "id": "design-26",
+      "category": "design",
+      "question": "Google wants to venture in the large appliances industry starting with a refrigerator. As a PM in Google, how would you go about designing a Smart Refrigerator for the USA?"
+    },
+    {
+      "id": "design-27",
+      "category": "design",
+      "question": "Design an ATM for airports."
+    },
+    {
+      "id": "design-28",
+      "category": "design",
+      "question": "Design a referral system for a grocery app."
+    },
+    {
+      "id": "design-29",
+      "category": "design",
+      "question": "How would you redesign the carwash?"
+    },
+    {
+      "id": "design-30",
+      "category": "design",
+      "question": "Imagine you're a PM at Meta. How would you make users feel less guilty about using Instagram while also increasing revenue?"
+    },
+    {
+      "id": "design-31",
+      "category": "design",
+      "question": "Design a cab-sharing service inside a chat application."
+    },
+    {
+      "id": "design-32",
+      "category": "design",
+      "question": "How would you design Google Maps for kids?"
+    },
+    {
+      "id": "design-33",
+      "category": "design",
+      "question": "Design a fridge for a person in a wheelchair."
+    },
+    {
+      "id": "design-34",
+      "category": "design",
+      "question": "How would you design a new music experience for Facebook?"
+    },
+    {
+      "id": "design-35",
+      "category": "design",
+      "question": "Design a photo app for the blind."
+    },
+    {
+      "id": "design-36",
+      "category": "design",
+      "question": "Design a product for teenagers to have more empathy."
+    },
+    {
+      "id": "design-37",
+      "category": "design",
+      "question": "How would you design a phone for kids aged less than 5 years?"
+    },
+    {
+      "id": "design-38",
+      "category": "design",
+      "question": "Design a bookshelf for kids."
+    },
+    {
+      "id": "design-39",
+      "category": "design",
+      "question": "Design a product to improve the lunch experience in XYZ company."
+    },
+    {
+      "id": "design-40",
+      "category": "design",
+      "question": "Design an alarm clock for the blind."
+    },
+    {
+      "id": "design-41",
+      "category": "design",
+      "question": "Create a way to sell movie tickets on Facebook."
+    },
+    {
+      "id": "design-42",
+      "category": "design",
+      "question": "Design a loyalty program for a search engine that's competing with Google & Bing."
+    },
+    {
+      "id": "design-43",
+      "category": "design",
+      "question": "Design an alarm clock for elderly people."
+    },
+    {
+      "id": "design-44",
+      "category": "design",
+      "question": "Build a new product on Facebook to find apartments."
+    },
+    {
+      "id": "design-45",
+      "category": "design",
+      "question": "Google is working on a tech that allows people to travel from SF to Seattle in just 15 minutes for only $1000 per person, one way. What would you do with this tech?"
+    },
+    {
+      "id": "design-46",
+      "category": "design",
+      "question": "You are a new PM at Facebook. Design an app to help people save money."
+    },
+    {
+      "id": "design-47",
+      "category": "design",
+      "question": "Design an app for the DMV (California's Department of Motor Vehicles)."
+    },
+    {
+      "id": "design-48",
+      "category": "design",
+      "question": "As a product manager, how would you design a communication solution for use by astronauts on a mission to Mars landing?"
+    },
+    {
+      "id": "design-49",
+      "category": "design",
+      "question": "Design a multi-factor authentication app for the visually challenged."
+    },
+    {
+      "id": "design-50",
+      "category": "design",
+      "question": "Design WhatsApp for children."
+    },
+    {
+      "id": "design-51",
+      "category": "design",
+      "question": "How would you create a playlist for a user after they listen to a single song (in an app like Spotify)?"
+    },
+    {
+      "id": "design-52",
+      "category": "design",
+      "question": "How would you design a cafeteria app for employees?"
+    },
+    {
+      "id": "design-53",
+      "category": "design",
+      "question": "Design a product to fight climate change."
+    },
+    {
+      "id": "design-54",
+      "category": "design",
+      "question": "You're a PM at a vending machine company. Your CEO asks you to design a new line of vending machines to be placed in hotels and motels. What would you do?"
+    },
+    {
+      "id": "design-55",
+      "category": "design",
+      "question": "Design a touchscreen table for restaurants."
+    },
+    {
+      "id": "design-56",
+      "category": "design",
+      "question": "How would you improve Grammarly? Should Google acquire Grammarly?"
+    },
+    {
+      "id": "design-57",
+      "category": "design",
+      "question": "Design an app for making someone a better cook."
+    },
+    {
+      "id": "design-58",
+      "category": "design",
+      "question": "What feature would you add to a self-driving car to make it a more attractive purchase?"
+    },
+    {
+      "id": "design-59",
+      "category": "design",
+      "question": "Design an app for an amusement park."
+    },
+    {
+      "id": "design-60",
+      "category": "design",
+      "question": "Design a healthcare application that would be useful for handling COVID-19."
+    },
+    {
+      "id": "design-61",
+      "category": "design",
+      "question": "Design a meditation app for kids."
+    },
+    {
+      "id": "design-62",
+      "category": "design",
+      "question": "Design a product to find a handyman."
+    },
+    {
+      "id": "design-63",
+      "category": "design",
+      "question": "Design a task assignment form for an app."
+    },
+    {
+      "id": "design-64",
+      "category": "design",
+      "question": "How would you improve the experience of a customer visiting your physical retail store?"
+    },
+    {
+      "id": "design-65",
+      "category": "design",
+      "question": "Design a data center on the moon for Google."
+    },
+    {
+      "id": "design-66",
+      "category": "design",
+      "question": "The CEO of your company asks you to design a new ATM for their airport segment. What do you do?"
+    },
+    {
+      "id": "design-67",
+      "category": "design",
+      "question": "Redesign a patrol station."
+    },
+    {
+      "id": "design-68",
+      "category": "design",
+      "question": "You are a product manager at a start-up whose technology can detect emotions. Evaluate potential applications."
+    },
+    {
+      "id": "design-69",
+      "category": "design",
+      "question": "How would you design a product for improving teenage health?"
+    },
+    {
+      "id": "design-70",
+      "category": "design",
+      "question": "Design a Facebook product for organ donation."
+    },
+    {
+      "id": "design-71",
+      "category": "design",
+      "question": "Design a product to choose cheese."
+    },
+    {
+      "id": "design-72",
+      "category": "design",
+      "question": "Design Lyft for delivery."
+    },
+    {
+      "id": "design-73",
+      "category": "design",
+      "question": "Design a Google bicycle."
+    },
+    {
+      "id": "design-74",
+      "category": "design",
+      "question": "Design an Instagram feature to help people find a restaurant."
+    },
+    {
+      "id": "design-75",
+      "category": "design",
+      "question": "Mark has asked you to build a new app for wine shopping in a grocery store. What do you do?"
+    },
+    {
+      "id": "design-76",
+      "category": "design",
+      "question": "Design a blender for the visually impaired."
+    },
+    {
+      "id": "design-77",
+      "category": "design",
+      "question": "Design a product for child care."
+    },
+    {
+      "id": "design-78",
+      "category": "design",
+      "question": "Design an online store to sell bicycles to 12-year-old girls."
+    },
+    {
+      "id": "design-79",
+      "category": "design",
+      "question": "As a PM at Apple, how would you reduce accidents with smartphones?"
+    },
+    {
+      "id": "design-80",
+      "category": "design",
+      "question": "Design a product to buy flight tickets."
+    },
+    {
+      "id": "design-81",
+      "category": "design",
+      "question": "Build a product to buy and sell antiques."
+    },
+    {
+      "id": "design-82",
+      "category": "design",
+      "question": "How would you design a bicycle renting app for tourists?"
+    },
+    {
+      "id": "design-83",
+      "category": "design",
+      "question": "How would you design a web search engine for children below 14 years old?"
+    },
+    {
+      "id": "design-84",
+      "category": "design",
+      "question": "How would you improve Outlook for the use case when people get overwhelmed by number of emails received after returning from a vacation?"
+    },
+    {
+      "id": "design-85",
+      "category": "design",
+      "question": "Build a product to solve the dog poop problem."
+    },
+    {
+      "id": "design-86",
+      "category": "design",
+      "question": "Design a Supermarket for older people."
+    },
+    {
+      "id": "design-87",
+      "category": "design",
+      "question": "How would you prevent hate, misinformation or deepfakes on YouTube?"
+    },
+    {
+      "id": "design-88",
+      "category": "design",
+      "question": "Design a library for the future."
+    },
+    {
+      "id": "design-89",
+      "category": "design",
+      "question": "How would you improve Facebook Groups?"
+    },
+    {
+      "id": "design-90",
+      "category": "design",
+      "question": "How would you design a consumer application for a scooter sharing business?"
+    },
+    {
+      "id": "design-91",
+      "category": "design",
+      "question": "How would you design a car sharing platform like Uber for disabled people?"
+    },
+    {
+      "id": "design-92",
+      "category": "design",
+      "question": "How would you go about designing a new location sharing app for Google?"
+    },
+    {
+      "id": "design-93",
+      "category": "design",
+      "question": "Design a product for Facebook to fight COVID-19."
+    },
+    {
+      "id": "design-94",
+      "category": "design",
+      "question": "Design Netflix for Senior Citizens (Goal: Increase engagement time)."
+    },
+    {
+      "id": "design-95",
+      "category": "design",
+      "question": "Design a social travel product."
+    },
+    {
+      "id": "design-96",
+      "category": "design",
+      "question": "Design a product for event gathering for Google."
+    },
+    {
+      "id": "design-97",
+      "category": "design",
+      "question": "How would you improve Facebook Pay?"
+    },
+    {
+      "id": "design-98",
+      "category": "design",
+      "question": "How would you design an app to help people choose which cheese to buy at a grocery store?"
+    },
+    {
+      "id": "design-99",
+      "category": "design",
+      "question": "Design a product for job seekers to create resumes and find the best matching jobs easily and quickly."
+    },
+    {
+      "id": "design-100",
+      "category": "design",
+      "question": "Design Uber for kids."
+    },
+    {
+      "id": "metrics-1",
+      "category": "metrics",
+      "question": "You launched a new feature that tracks daily steps in the Apple Health app. How would you measure its success?"
+    },
+    {
+      "id": "metrics-2",
+      "category": "metrics",
+      "question": "What metrics would you use to measure the success of the Save feature at Facebook?"
+    },
+    {
+      "id": "metrics-3",
+      "category": "metrics",
+      "question": "How would you measure the success of Facebook Likes?"
+    },
+    {
+      "id": "metrics-4",
+      "category": "metrics",
+      "question": "What metrics would you look at as a product manager for Instagram ads?"
+    },
+    {
+      "id": "metrics-5",
+      "category": "metrics",
+      "question": "You launched a new feature that determines whether a Facebook message was read by a recipient. What metrics would you collect? How would you know the feature was a success?"
+    },
+    {
+      "id": "metrics-6",
+      "category": "metrics",
+      "question": "Identify one metric for Facebook Marketplace that the whole team should monitor daily."
+    },
+    {
+      "id": "metrics-7",
+      "category": "metrics",
+      "question": "What is the most important metric for Google Docs and why?"
+    },
+    {
+      "id": "metrics-8",
+      "category": "metrics",
+      "question": "What is the most important metric for Uber Eats? Why?"
+    },
+    {
+      "id": "metrics-9",
+      "category": "metrics",
+      "question": "What success metrics would you use to measure a payment gateway product?"
+    },
+    {
+      "id": "metrics-10",
+      "category": "metrics",
+      "question": "What metrics would you use to track the improvement of sense of community within Facebook Groups?"
+    },
+    {
+      "id": "metrics-11",
+      "category": "metrics",
+      "question": "How do you measure success of the Facebook Fundraising feature?"
+    },
+    {
+      "id": "metrics-12",
+      "category": "metrics",
+      "question": "Around 40% of reviews in Amazon are fake. As a PM in Amazon, how will you tackle the problem? Break your answer into 3 parts — how will you identify a review is fake, what action will you take, and if fake reviews decrease, what will be the impact?"
+    },
+    {
+      "id": "metrics-13",
+      "category": "metrics",
+      "question": "You are PM of FB Events and you saw an overnight drop in RSVPs by 10%. How would you go about determining what happened?"
+    },
+    {
+      "id": "metrics-14",
+      "category": "metrics",
+      "question": "What are the success metrics for Facebook Live at the growth phase?"
+    },
+    {
+      "id": "metrics-15",
+      "category": "metrics",
+      "question": "How would you measure the success of Google Photos?"
+    },
+    {
+      "id": "metrics-16",
+      "category": "metrics",
+      "question": "You are the PM of Instagram Stories. What goal would you set and how would you measure success?"
+    },
+    {
+      "id": "metrics-17",
+      "category": "metrics",
+      "question": "What goals would you set for a Facebook Dating feature?"
+    },
+    {
+      "id": "metrics-18",
+      "category": "metrics",
+      "question": "How would you evaluate the success of Instagram Stories?"
+    },
+    {
+      "id": "metrics-19",
+      "category": "metrics",
+      "question": "How would you measure the success of Gmail?"
+    },
+    {
+      "id": "metrics-20",
+      "category": "metrics",
+      "question": "You are the PM of the Facebook timeline. How would you measure retention?"
+    },
+    {
+      "id": "metrics-21",
+      "category": "metrics",
+      "question": "How would you evaluate the success of Reactions in Facebook?"
+    },
+    {
+      "id": "metrics-22",
+      "category": "metrics",
+      "question": "You're the PM for Facebook Pay. What goals would you define and what metrics would you track to measure your team's success?"
+    },
+    {
+      "id": "metrics-23",
+      "category": "metrics",
+      "question": "How would you measure the success of Uber Ride?"
+    },
+    {
+      "id": "metrics-24",
+      "category": "metrics",
+      "question": "How do you define success for Yelp reviews?"
+    },
+    {
+      "id": "metrics-25",
+      "category": "metrics",
+      "question": "Imagine you were in charge of Facebook Watch. What metric would you want to measure?"
+    },
+    {
+      "id": "metrics-26",
+      "category": "metrics",
+      "question": "You are a PM for an e-commerce company. The data team lost all key metrics. What metrics will you track as PM?"
+    },
+    {
+      "id": "metrics-27",
+      "category": "metrics",
+      "question": "You are the PM of Facebook Lite. What goals would you set?"
+    },
+    {
+      "id": "metrics-28",
+      "category": "metrics",
+      "question": "How would you measure the success of Google Calendar?"
+    },
+    {
+      "id": "metrics-29",
+      "category": "metrics",
+      "question": "You are the PM who launched Instagram videos. What would be the goals and the success metrics?"
+    },
+    {
+      "id": "metrics-30",
+      "category": "metrics",
+      "question": "What metrics would you look at to evaluate LinkedIn's success?"
+    },
+    {
+      "id": "metrics-31",
+      "category": "metrics",
+      "question": "You are the PM in charge of Facebook Reactions. What would success look like in terms of number of non-like reactions per post at launch, and how do you come up with this? Would this number differ by reaction?"
+    },
+    {
+      "id": "metrics-32",
+      "category": "metrics",
+      "question": "Users have decision fatigue on Uber Eats. What success metrics would you use to check the impact?"
+    },
+    {
+      "id": "metrics-33",
+      "category": "metrics",
+      "question": "How should you decide whether to autoplay videos on the newsfeed? What are the metrics for success?"
+    },
+    {
+      "id": "metrics-34",
+      "category": "metrics",
+      "question": "Late deliveries lead to customer churn. What data should we look at to prove this hypothesis for a food delivery app?"
+    },
+    {
+      "id": "metrics-35",
+      "category": "metrics",
+      "question": "How would you measure the success of YouTube?"
+    },
+    {
+      "id": "metrics-36",
+      "category": "metrics",
+      "question": "How would you determine success for the Facebook profile verification checkmark?"
+    },
+    {
+      "id": "metrics-37",
+      "category": "metrics",
+      "question": "What is the most important metric for Slack and why?"
+    },
+    {
+      "id": "metrics-38",
+      "category": "metrics",
+      "question": "How would you measure the success of Uber Grocery?"
+    },
+    {
+      "id": "metrics-39",
+      "category": "metrics",
+      "question": "You are the PM of the \"Share\" feature on Facebook. How would you measure the success of this feature?"
+    },
+    {
+      "id": "metrics-40",
+      "category": "metrics",
+      "question": "How would you go about setting goals for Instagram hashtags?"
+    },
+    {
+      "id": "metrics-41",
+      "category": "metrics",
+      "question": "How would you measure the performance and health of a Netflix Original?"
+    },
+    {
+      "id": "metrics-42",
+      "category": "metrics",
+      "question": "You're the PM for a new Meta product called Audio Rooms. What goals would you set for this product?"
+    },
+    {
+      "id": "metrics-43",
+      "category": "metrics",
+      "question": "Pick a feature from a product of your choice and tell us how you will assess the success of that feature. Assume it is being launched now."
+    },
+    {
+      "id": "metrics-44",
+      "category": "metrics",
+      "question": "You are a PM for Facebook Events focused on growth. What would be your North Star metric?"
+    },
+    {
+      "id": "metrics-45",
+      "category": "metrics",
+      "question": "Consider LinkedIn. Which are the top three metrics you would check first thing in the morning?"
+    },
+    {
+      "id": "metrics-46",
+      "category": "metrics",
+      "question": "How would you measure improvements made to Facebook Messenger?"
+    },
+    {
+      "id": "metrics-47",
+      "category": "metrics",
+      "question": "You are the PM for Amazon's cart page. How would you build a dashboard to measure success?"
+    },
+    {
+      "id": "metrics-48",
+      "category": "metrics",
+      "question": "How would you measure the success of the Netflix recommendation engine?"
+    },
+    {
+      "id": "metrics-49",
+      "category": "metrics",
+      "question": "How would you set the goal for Facebook's Crisis Response feature?"
+    },
+    {
+      "id": "metrics-50",
+      "category": "metrics",
+      "question": "You are part of Reddit's product management team. How would you measure the success of Reddit?"
+    },
+    {
+      "id": "metrics-51",
+      "category": "metrics",
+      "question": "If you were the PM for Lyft, what dashboard would you build to track the health of the app?"
+    },
+    {
+      "id": "metrics-52",
+      "category": "metrics",
+      "question": "How would you measure the success of Facebook Friends feature?"
+    },
+    {
+      "id": "metrics-53",
+      "category": "metrics",
+      "question": "Set goals for Facebook notifications."
+    },
+    {
+      "id": "metrics-54",
+      "category": "metrics",
+      "question": "Instagram is launching video calling. How would you test and measure its success?"
+    },
+    {
+      "id": "metrics-55",
+      "category": "metrics",
+      "question": "You are the PM for Facebook/Instagram. You want to add a \"Mute showing food\" feature. How would you measure success?"
+    },
+    {
+      "id": "metrics-56",
+      "category": "metrics",
+      "question": "You are the PM for Facebook Pages. What features would you prioritize?"
+    },
+    {
+      "id": "metrics-57",
+      "category": "metrics",
+      "question": "What metrics would you track if you were PM of Facebook Birthdays?"
+    },
+    {
+      "id": "metrics-58",
+      "category": "metrics",
+      "question": "What do you think is the most important metric to track in Google Search and why?"
+    },
+    {
+      "id": "metrics-59",
+      "category": "metrics",
+      "question": "How do you define the goals and metrics for Facebook Newsfeed?"
+    },
+    {
+      "id": "metrics-60",
+      "category": "metrics",
+      "question": "What are the important metrics a PM for a luxury goods e-commerce website should look at?"
+    },
+    {
+      "id": "metrics-61",
+      "category": "metrics",
+      "question": "How would you change the Amazon Fresh experience and how would you measure success?"
+    },
+    {
+      "id": "metrics-62",
+      "category": "metrics",
+      "question": "Which metrics would you track for Uber Pool during the first 6 months after product launch?"
+    },
+    {
+      "id": "metrics-63",
+      "category": "metrics",
+      "question": "What metrics would you choose for TikTok Live?"
+    },
+    {
+      "id": "metrics-64",
+      "category": "metrics",
+      "question": "What metrics would you use to measure notifications at Facebook?"
+    },
+    {
+      "id": "metrics-65",
+      "category": "metrics",
+      "question": "What metrics do you think are most important for evaluating the success of Facebook's Workplace product?"
+    },
+    {
+      "id": "metrics-66",
+      "category": "metrics",
+      "question": "What goals would you set for Instagram Reels, as an Instagram Reels product manager?"
+    },
+    {
+      "id": "metrics-67",
+      "category": "metrics",
+      "question": "What would be the top six metrics for WhatsApp? Now pick one from the six. Tell me three things you would do to improve that metric."
+    },
+    {
+      "id": "metrics-68",
+      "category": "metrics",
+      "question": "How would you find if a customer is brand agnostic or not when shopping?"
+    },
+    {
+      "id": "metrics-69",
+      "category": "metrics",
+      "question": "Facebook is running a test where they hide the like/comment/share bar of each Newsfeed post. What metrics do you expect to move, and how would you decide to roll out the feature?"
+    },
+    {
+      "id": "metrics-70",
+      "category": "metrics",
+      "question": "How would you define success for Facebook Shops?"
+    },
+    {
+      "id": "metrics-71",
+      "category": "metrics",
+      "question": "How would you describe and assess how the Uber Marketplace (matching platform) is doing, for UberX?"
+    },
+    {
+      "id": "metrics-72",
+      "category": "metrics",
+      "question": "Make an argument for offering some free storage space to Google Photos users."
+    },
+    {
+      "id": "metrics-73",
+      "category": "metrics",
+      "question": "Define the metrics for YouTube search."
+    },
+    {
+      "id": "metrics-74",
+      "category": "metrics",
+      "question": "Instagram recently decided to hide like counts on posts. How would you measure the success of this feature?"
+    },
+    {
+      "id": "metrics-75",
+      "category": "metrics",
+      "question": "Facebook's DAU is decreasing 15% per week for the last 3 weeks. How would you find out why?"
+    },
+    {
+      "id": "metrics-76",
+      "category": "metrics",
+      "question": "Facebook is launching a money transfer feature. What would you choose as success metrics?"
+    },
+    {
+      "id": "metrics-77",
+      "category": "metrics",
+      "question": "What metrics would you track to increase the content consumption of Spotify by 10x?"
+    },
+    {
+      "id": "metrics-78",
+      "category": "metrics",
+      "question": "How do you measure the success of Google Search?"
+    },
+    {
+      "id": "metrics-79",
+      "category": "metrics",
+      "question": "Set goals for Facebook Stories."
+    },
+    {
+      "id": "metrics-80",
+      "category": "metrics",
+      "question": "What data points would you track to know if a Zoom meeting was successful or not?"
+    },
+    {
+      "id": "metrics-81",
+      "category": "metrics",
+      "question": "What goals would you set for Facebook Jobs?"
+    },
+    {
+      "id": "metrics-82",
+      "category": "metrics",
+      "question": "How do you measure the success of the Hot Home feature in Redfin?"
+    },
+    {
+      "id": "metrics-83",
+      "category": "metrics",
+      "question": "What are the key metrics to capture for a streaming service product?"
+    },
+    {
+      "id": "metrics-84",
+      "category": "metrics",
+      "question": "You are the PM for privacy and security at Facebook. What goal would you set and how would you measure success?"
+    },
+    {
+      "id": "metrics-85",
+      "category": "metrics",
+      "question": "Suppose you're the Chief Product Officer of Swiggy. What are the top three metrics you would track?"
+    },
+    {
+      "id": "metrics-86",
+      "category": "metrics",
+      "question": "Imagine you are the head of Product at Airbnb. What top 2–3 metrics would you monitor?"
+    },
+    {
+      "id": "metrics-87",
+      "category": "metrics",
+      "question": "How would you test LinkedIn's \"People you may know\" when you don't have any data to base decisions on?"
+    },
+    {
+      "id": "metrics-88",
+      "category": "metrics",
+      "question": "Facebook is changing the composer UI to a \"+\" button at the bottom. How would you test if this is a good idea?"
+    },
+    {
+      "id": "metrics-89",
+      "category": "metrics",
+      "question": "How do you measure the success of Airbnb Online Experiences?"
+    },
+    {
+      "id": "metrics-90",
+      "category": "metrics",
+      "question": "Facebook wants to split its News Feed into two. What metrics would you look at to validate this decision?"
+    },
+    {
+      "id": "metrics-91",
+      "category": "metrics",
+      "question": "As PM for Instagram Stories, you're considering increasing the story expiration time. What metrics would you use to decide?"
+    },
+    {
+      "id": "metrics-92",
+      "category": "metrics",
+      "question": "How do you measure the success of Instacart?"
+    },
+    {
+      "id": "metrics-93",
+      "category": "metrics",
+      "question": "You launched a new Facebook feature with 20% engagement. How will you know if overall Facebook engagement increased, decreased, or stayed the same?"
+    },
+    {
+      "id": "metrics-94",
+      "category": "metrics",
+      "question": "If you were to build Facebook Events from scratch, how would you measure success?"
+    },
+    {
+      "id": "metrics-95",
+      "category": "metrics",
+      "question": "How would you measure the success of Google Hangouts?"
+    },
+    {
+      "id": "metrics-96",
+      "category": "metrics",
+      "question": "How would you assess the opportunity for showing a \"You may also like\" block alongside the ads block on Google Shopping?"
+    },
+    {
+      "id": "metrics-97",
+      "category": "metrics",
+      "question": "How would you measure the success of Zoom?"
+    },
+    {
+      "id": "metrics-98",
+      "category": "metrics",
+      "question": "Pick your favorite product and, as PM, define the daily dashboard you'd use to run the business."
+    },
+    {
+      "id": "metrics-99",
+      "category": "metrics",
+      "question": "An Instagram A/B test shows +10% Stories usage but −10% overall usage. What metrics would you request to make the trade-off decision?"
+    },
+    {
+      "id": "metrics-100",
+      "category": "metrics",
+      "question": "As PM for Facebook News Feed, you aim to increase posts seen per day. Which metrics would be affected, and what data would you expect?"
+    },
+    {
+      "id": "metrics-101",
+      "category": "metrics",
+      "question": "Imagine you are PM of Uber's search map. How would you calculate its success?"
+    },
+    {
+      "id": "problem-1",
+      "category": "problem",
+      "question": "Zomato's average restaurant rating in Pune has dropped by 10% over the past month. As the PM, how would you investigate and fix it?"
+    },
+    {
+      "id": "problem-2",
+      "category": "problem",
+      "question": "Tata Cliq's website bounce rate has increased by 25%. Diagnose the root cause and recommend fixes."
+    },
+    {
+      "id": "problem-3",
+      "category": "problem",
+      "question": "A metric for a video streaming service dropped by 80%. What do you do?"
+    },
+    {
+      "id": "problem-4",
+      "category": "problem",
+      "question": "Your new feature boosts Amazon Search by 10% but adds 2 seconds to load time. What do you do?"
+    },
+    {
+      "id": "problem-5",
+      "category": "problem",
+      "question": "Drivers are dropping out of a city on Lyft. How do you figure out what's going on?"
+    },
+    {
+      "id": "problem-6",
+      "category": "problem",
+      "question": "There is a 15% drop in Instagram app open rate. You are the PM — what could have happened?"
+    },
+    {
+      "id": "problem-7",
+      "category": "problem",
+      "question": "You launched a new signup flow: profile info up 8% but 7-day retention down 2%. What do you do?"
+    },
+    {
+      "id": "problem-8",
+      "category": "problem",
+      "question": "Data shows more Uber airport drop-offs than pick-ups. Why, and what would you change in product?"
+    },
+    {
+      "id": "problem-9",
+      "category": "problem",
+      "question": "New patients are not showing up for their first telehealth appointment. How do you solve this?"
+    },
+    {
+      "id": "problem-10",
+      "category": "problem",
+      "question": "You notice a spike in user-uploaded videos on your platform in June. What's the cause? How do you test it?"
+    },
+    {
+      "id": "problem-11",
+      "category": "problem",
+      "question": "You are the PM of Instagram. MAU constant, DAU declined. What do you do?"
+    },
+    {
+      "id": "problem-12",
+      "category": "problem",
+      "question": "Weekly active users (WAU) for an iPhone app dropped. What happened?"
+    },
+    {
+      "id": "problem-13",
+      "category": "problem",
+      "question": "How would you reduce cancellations for Uber?"
+    },
+    {
+      "id": "problem-14",
+      "category": "problem",
+      "question": "What are your solutions to reduce car cancellation rate on Uber's waiting page?"
+    },
+    {
+      "id": "problem-15",
+      "category": "problem",
+      "question": "New users signing up for Facebook are not returning after 30 days. How do you identify the problem?"
+    },
+    {
+      "id": "problem-16",
+      "category": "problem",
+      "question": "Facebook Stories engagement up but Newsfeed engagement down. What do you do?"
+    },
+    {
+      "id": "problem-17",
+      "category": "problem",
+      "question": "Imagine you are a PM at Amazon. How would you reduce product return rates?"
+    },
+    {
+      "id": "problem-18",
+      "category": "problem",
+      "question": "There has been a 15% drop in usage of Facebook Groups. How would you fix it?"
+    },
+    {
+      "id": "problem-19",
+      "category": "problem",
+      "question": "Daily active users on Instagram have dropped by 20%. What steps do you follow to identify the root cause?"
+    },
+    {
+      "id": "problem-20",
+      "category": "problem",
+      "question": "There are ~1 million inactive Netflix users. What would you do?"
+    },
+    {
+      "id": "problem-21",
+      "category": "problem",
+      "question": "Facebook Messenger usage is down. Figure out why and what you would do."
+    },
+    {
+      "id": "problem-22",
+      "category": "problem",
+      "question": "You are a PM at a hyperlocal grocery delivery startup. High returns on rice orders — what are your hypotheses, and how do you solve this?"
+    },
+    {
+      "id": "problem-23",
+      "category": "problem",
+      "question": "You walk into the office and find that Google Cloud subscriptions have dropped by 20%. What do you do?"
+    },
+    {
+      "id": "problem-24",
+      "category": "problem",
+      "question": "You are a PM for LinkedIn Trust Team. Senior influencers complain about spam connection requests and threaten to leave. What do you do?"
+    },
+    {
+      "id": "problem-25",
+      "category": "problem",
+      "question": "How would you increase customer lifetime value (CLV) for Swiggy?"
+    },
+    {
+      "id": "problem-26",
+      "category": "problem",
+      "question": "You are the new PM for a crypto exchange. Set a product roadmap and define core metrics for the first 18 months."
+    },
+    {
+      "id": "problem-27",
+      "category": "problem",
+      "question": "Google Maps daily active users dropped 10%. What do you do?"
+    },
+    {
+      "id": "problem-28",
+      "category": "problem",
+      "question": "Order cancellations increased by 15%. How do you diagnose the root cause?"
+    },
+    {
+      "id": "problem-29",
+      "category": "problem",
+      "question": "Walmart's order return rate is increasing. What would you look into to isolate the problem?"
+    },
+    {
+      "id": "problem-30",
+      "category": "problem",
+      "question": "If Uber Eats orders are down, how will you track the root cause?"
+    },
+    {
+      "id": "problem-31",
+      "category": "problem",
+      "question": "Wrong order deliveries increased by 30% for a fashion e-commerce company. How would you identify the root cause and fix it?"
+    },
+    {
+      "id": "problem-32",
+      "category": "problem",
+      "question": "There is an 8% drop in Google Search usage. What would you do?"
+    },
+    {
+      "id": "problem-33",
+      "category": "problem",
+      "question": "Creation of Facebook user groups is down 20%. What do you do?"
+    },
+    {
+      "id": "problem-34",
+      "category": "problem",
+      "question": "There is a 50% drop in Uber rides per day. Diagnose the problem."
+    },
+    {
+      "id": "problem-35",
+      "category": "problem",
+      "question": "You are a PM at Uber or Ola. You need to upsell Uber Go to Uber Auto customers. What product changes would you make?"
+    },
+    {
+      "id": "problem-36",
+      "category": "problem",
+      "question": "Large numbers of drivers are dropping out of a particular city. Why might this be?"
+    },
+    {
+      "id": "problem-37",
+      "category": "problem",
+      "question": "Facebook Ads dropped by 20%. Mark Zuckerberg calls you — what do you do?"
+    },
+    {
+      "id": "problem-38",
+      "category": "problem",
+      "question": "Google Search revenue has gone down. Figure out why."
+    },
+    {
+      "id": "problem-39",
+      "category": "problem",
+      "question": "Paytm transactions dropped by 50% last week. What could be the reasons?"
+    },
+    {
+      "id": "problem-40",
+      "category": "problem",
+      "question": "Spotify installs increased by 25%. What are at least four possible reasons?"
+    },
+    {
+      "id": "problem-41",
+      "category": "problem",
+      "question": "Suppose you are a PM at Zomato. Office colleagues order from multiple restaurants, causing staggered deliveries and poor experience. How would you solve this?"
+    },
+    {
+      "id": "problem-42",
+      "category": "problem",
+      "question": "A Facebook survey shows satisfaction is 30% lower for users with added login security features vs. those without. Why might this be? Comment on survey design."
+    },
+    {
+      "id": "problem-43",
+      "category": "problem",
+      "question": "Utilization dropped 45% on app XYZ in Italy for August. Why, and what's your fix plan?"
+    },
+    {
+      "id": "problem-44",
+      "category": "problem",
+      "question": "Users on Amazon's site dropped 10%. What are possible reasons and fixes?"
+    },
+    {
+      "id": "problem-45",
+      "category": "problem",
+      "question": "Instagram: Stories engagement is up, but feed post engagement is down. What do you do?"
+    },
+    {
+      "id": "problem-46",
+      "category": "problem",
+      "question": "20% of Slack extension users uninstalled in one day. What are your assumptions and root-cause steps?"
+    },
+    {
+      "id": "problem-47",
+      "category": "problem",
+      "question": "Food-delivery app shows a downward trend in orders fulfilled. How would you find the root cause?"
+    },
+    {
+      "id": "problem-48",
+      "category": "problem",
+      "question": "How do you convert offline retail customers to omnichannel/online transactors?"
+    },
+    {
+      "id": "problem-49",
+      "category": "problem",
+      "question": "You're on Internal Audit. What KPIs would you set to measure compliance and risk appetite?"
+    },
+    {
+      "id": "problem-50",
+      "category": "problem",
+      "question": "Customers tweet that your waitlist feature shows wrong wait times. How do you investigate?"
+    },
+    {
+      "id": "problem-51",
+      "category": "problem",
+      "question": "B2B payment card usage on e-commerce suddenly dropped in April. Analyze and propose solutions."
+    },
+    {
+      "id": "problem-52",
+      "category": "problem",
+      "question": "Friend requests are down 10%. Diagnose."
+    },
+    {
+      "id": "problem-53",
+      "category": "problem",
+      "question": "70% of shoppers view the returns policy before shopping. What do you do?"
+    },
+    {
+      "id": "problem-54",
+      "category": "problem",
+      "question": "How would you address homelessness in downtown San Francisco?"
+    },
+    {
+      "id": "problem-55",
+      "category": "problem",
+      "question": "Facebook group creation has dropped. Why?"
+    },
+    {
+      "id": "problem-56",
+      "category": "problem",
+      "question": "Apple Card customers are missing payments, causing account issues and complaint spikes. Why, and what happens to accounts?"
+    },
+    {
+      "id": "problem-57",
+      "category": "problem",
+      "question": "Messenger DAU dropped significantly. How do you find the root cause?"
+    },
+    {
+      "id": "problem-58",
+      "category": "problem",
+      "question": "Facebook Page creation fell 10%; you fixed it, but WAU then fell 5%. What next?"
+    },
+    {
+      "id": "problem-59",
+      "category": "problem",
+      "question": "Medium's % active users suddenly dropped 35% after 3 weeks of fluctuation. How do you diagnose and restore?"
+    },
+    {
+      "id": "problem-60",
+      "category": "problem",
+      "question": "A grocery brand isn't selling; inventory is nearing expiry. List reasons and solutions."
+    },
+    {
+      "id": "problem-61",
+      "category": "problem",
+      "question": "Disney+ \"Recommended for you\" sees a sudden 10% drop in average minutes viewed. What do you do?"
+    },
+    {
+      "id": "problem-62",
+      "category": "problem",
+      "question": "Amazon MAU has risen for 6 months, but average sales per user keeps falling. Why?"
+    },
+    {
+      "id": "problem-63",
+      "category": "problem",
+      "question": "Flipkart's revenue metrics recently dropped. What's the reason?"
+    },
+    {
+      "id": "problem-64",
+      "category": "problem",
+      "question": "YouTube revenue suddenly dropped 10%. Why?"
+    },
+    {
+      "id": "problem-65",
+      "category": "problem",
+      "question": "You launched a pilot. Now there's a competing priority: a new feature request vs. a bug fix. How do you decide?"
+    },
+    {
+      "id": "problem-66",
+      "category": "problem",
+      "question": "Rider experience with airport rides is worsening. What do you do?"
+    },
+    {
+      "id": "problem-67",
+      "category": "problem",
+      "question": "Returns in Flipkart's mobile category have been rising steadily for 3 months. What's your approach?"
+    },
+    {
+      "id": "problem-68",
+      "category": "problem",
+      "question": "Housing.com mobile leads conversion dropped 3% in 2 weeks. How do you analyze?"
+    },
+    {
+      "id": "problem-69",
+      "category": "problem",
+      "question": "As PM for Facebook Live, usage is down 20%. How do you find the root cause?"
+    },
+    {
+      "id": "problem-70",
+      "category": "problem",
+      "question": "How would you approach adding an e-commerce \"Shop\" feature to a subscription product?"
+    },
+    {
+      "id": "problem-71",
+      "category": "problem",
+      "question": "Messenger DAU dropped 10%. Why?"
+    },
+    {
+      "id": "problem-72",
+      "category": "problem",
+      "question": "During the pandemic, with contracts already signed, how do you deliver projects?"
+    },
+    {
+      "id": "problem-73",
+      "category": "problem",
+      "question": "If you had unlimited resources to fix one world problem, what would it be? Who's your team, and what's your success metric?"
+    },
+    {
+      "id": "problem-74",
+      "category": "problem",
+      "question": "You're PM for Facebook Likes. Acceptance dropped 5%. What do you do?"
+    },
+    {
+      "id": "problem-75",
+      "category": "problem",
+      "question": "What would you do if your web traffic dropped by 100% suddenly?"
+    },
+    {
+      "id": "problem-76",
+      "category": "problem",
+      "question": "Airbnb sees more mobile web than native app usage. Why, and what product changes would you make?"
+    },
+    {
+      "id": "problem-77",
+      "category": "problem",
+      "question": "Facebook's new feed algorithm led to a 20% drop in session duration. What do you do?"
+    },
+    {
+      "id": "problem-78",
+      "category": "problem",
+      "question": "How would you increase the average Uber driver rating in your area from 4.5?"
+    },
+    {
+      "id": "problem-79",
+      "category": "problem",
+      "question": "Uber's ride rating is 20% below industry standard. How do you fix it?"
+    },
+    {
+      "id": "problem-80",
+      "category": "problem",
+      "question": "Pick your favorite product. What one missing feature would make life simpler?"
+    },
+    {
+      "id": "problem-81",
+      "category": "problem",
+      "question": "How would you pack and ship exactly 1 lb of apples?"
+    },
+    {
+      "id": "problem-82",
+      "category": "problem",
+      "question": "Lyft ride cancellations spiked this week. Why could this be?"
+    },
+    {
+      "id": "problem-83",
+      "category": "problem",
+      "question": "At a food delivery firm, lunch conversion is 2% vs. 10% at breakfast/dinner. How would you solve this?"
+    },
+    {
+      "id": "problem-84",
+      "category": "problem",
+      "question": "How would you increase Swiggy's revenue 4x?"
+    },
+    {
+      "id": "problem-85",
+      "category": "problem",
+      "question": "How would you regain lost Amazon sellers without increasing budget?"
+    },
+    {
+      "id": "problem-86",
+      "category": "problem",
+      "question": "How would you triage a 10% drop in rider cancellations?"
+    },
+    {
+      "id": "problem-87",
+      "category": "problem",
+      "question": "As PM for Facebook Friends, friending dropped 5% in a week. Why?"
+    },
+    {
+      "id": "problem-88",
+      "category": "problem",
+      "question": "As Amazon seller PM, how would you reactivate churned sellers with budget constraints?"
+    },
+    {
+      "id": "problem-89",
+      "category": "problem",
+      "question": "Identify 3–5 issues in a collaborative group lending & savings platform."
+    },
+    {
+      "id": "problem-90",
+      "category": "problem",
+      "question": "Users stopped signing up due to an issue in the sign-up flow. What would you do?"
+    },
+    {
+      "id": "problem-91",
+      "category": "problem",
+      "question": "As a new e-commerce player, a customer requests a return past expiration. What would you do?"
+    },
+    {
+      "id": "problem-92",
+      "category": "problem",
+      "question": "Zoom integrates AI notes, and meetings decrease. What would you do?"
+    },
+    {
+      "id": "problem-93",
+      "category": "problem",
+      "question": "Facebook Marketplace sales are up, but Local Ads revenue is down. Why?"
+    },
+    {
+      "id": "problem-94",
+      "category": "problem",
+      "question": "Canva paid subscribers in India are declining. What's wrong?"
+    },
+    {
+      "id": "problem-95",
+      "category": "problem",
+      "question": "Amazon DAU in India dropped 20%. Find the root cause."
+    },
+    {
+      "id": "problem-96",
+      "category": "problem",
+      "question": "Your product caused a global outage. How would you handle it?"
+    },
+    {
+      "id": "problem-97",
+      "category": "problem",
+      "question": "Your defective product caused illness in children. How would you handle it?"
+    },
+    {
+      "id": "problem-98",
+      "category": "problem",
+      "question": "As eBay PM, checkout conversion is low. What would you do?"
+    },
+    {
+      "id": "problem-99",
+      "category": "problem",
+      "question": "YouTube recommended video engagement dropped. What metrics would you track?"
+    },
+    {
+      "id": "problem-100",
+      "category": "problem",
+      "question": "At ChatGPT, thumbs-down feedback on responses is rising. How would you identify the cause and fix it?"
+    },
+    {
+      "id": "problem-101",
+      "category": "problem",
+      "question": "Avg. comments per story on a news platform increased from 2 to 3 in 2 days. What are your hypotheses?"
+    },
+    {
+      "id": "problem-102",
+      "category": "problem",
+      "question": "Engagement in Microsoft OneDrive dropped. How would you investigate?"
+    },
+    {
+      "id": "estimation-1",
+      "category": "estimation",
+      "question": "Calculate the number of queries answered by Google per second."
+    },
+    {
+      "id": "estimation-2",
+      "category": "estimation",
+      "question": "How many dentists are there in New York?"
+    },
+    {
+      "id": "estimation-3",
+      "category": "estimation",
+      "question": "How do you decide how many cash registers you need for a new Walmart store?"
+    },
+    {
+      "id": "estimation-4",
+      "category": "estimation",
+      "question": "Estimate the number of Uber rides."
+    },
+    {
+      "id": "estimation-5",
+      "category": "estimation",
+      "question": "Estimate the number of bicycles required to start a bike-sharing operation in a big city."
+    },
+    {
+      "id": "estimation-6",
+      "category": "estimation",
+      "question": "Estimate the number of Tesla Model 3s in California."
+    },
+    {
+      "id": "estimation-7",
+      "category": "estimation",
+      "question": "How many elevators should an average office building have?"
+    },
+    {
+      "id": "estimation-8",
+      "category": "estimation",
+      "question": "How much storage space is required to host all the images of Google Street View?"
+    },
+    {
+      "id": "estimation-9",
+      "category": "estimation",
+      "question": "How many passengers are in planes in the air at any given time in the U.S.A.?"
+    },
+    {
+      "id": "estimation-10",
+      "category": "estimation",
+      "question": "How much revenue did Gmail make from ads in the USA last year?"
+    },
+    {
+      "id": "estimation-11",
+      "category": "estimation",
+      "question": "Estimate the number of planes that are in the air in an hour."
+    },
+    {
+      "id": "estimation-12",
+      "category": "estimation",
+      "question": "How would you estimate the total number of cars right now on Highway 101 between San Francisco and Mountain View?"
+    },
+    {
+      "id": "estimation-13",
+      "category": "estimation",
+      "question": "Estimate the number of WhatsApp chats occurring in India."
+    },
+    {
+      "id": "estimation-14",
+      "category": "estimation",
+      "question": "Estimate the total number of videos on YouTube."
+    },
+    {
+      "id": "estimation-15",
+      "category": "estimation",
+      "question": "What is the market size of toilet paper in the US?"
+    },
+    {
+      "id": "estimation-16",
+      "category": "estimation",
+      "question": "How would you estimate Google AdSense revenue?"
+    },
+    {
+      "id": "estimation-17",
+      "category": "estimation",
+      "question": "How much storage is required to store all of the images on Google Maps?"
+    },
+    {
+      "id": "estimation-18",
+      "category": "estimation",
+      "question": "You run a grocery delivery service that delivers within 24 hours. How many trucks would you need to operate it?"
+    },
+    {
+      "id": "estimation-19",
+      "category": "estimation",
+      "question": "Estimate the number of passengers arriving at San Francisco International Airport each day."
+    },
+    {
+      "id": "estimation-20",
+      "category": "estimation",
+      "question": "A company launched a new drug that eliminates the need for sleep. How would you price this drug?"
+    },
+    {
+      "id": "estimation-21",
+      "category": "estimation",
+      "question": "Estimate the number of orders delivered by Swiggy per hour in India."
+    },
+    {
+      "id": "estimation-22",
+      "category": "estimation",
+      "question": "Estimate the number of Facebook users in India."
+    },
+    {
+      "id": "estimation-23",
+      "category": "estimation",
+      "question": "How many balls does it take to fill a 16×16 ft room?"
+    },
+    {
+      "id": "estimation-24",
+      "category": "estimation",
+      "question": "What is the market for driverless cars in 2020?"
+    },
+    {
+      "id": "estimation-25",
+      "category": "estimation",
+      "question": "Estimate when you will get a Tesla Model 3 if you make a reservation today."
+    },
+    {
+      "id": "estimation-26",
+      "category": "estimation",
+      "question": "Estimate the market size for Google Fi."
+    },
+    {
+      "id": "estimation-27",
+      "category": "estimation",
+      "question": "How many Pixel phones were sold by Google worldwide in the last 12 months?"
+    },
+    {
+      "id": "estimation-28",
+      "category": "estimation",
+      "question": "How many airports are in the US and in the world?"
+    },
+    {
+      "id": "estimation-29",
+      "category": "estimation",
+      "question": "Estimate the total storage capacity for all videos on YouTube."
+    },
+    {
+      "id": "estimation-30",
+      "category": "estimation",
+      "question": "How would you estimate how many people are watching YouTube in India right now?"
+    },
+    {
+      "id": "estimation-31",
+      "category": "estimation",
+      "question": "Estimate the memory needed for Nest cameras for the fiscal year 2020."
+    },
+    {
+      "id": "estimation-32",
+      "category": "estimation",
+      "question": "Estimate the daily bandwidth consumed by YouTube globally."
+    },
+    {
+      "id": "estimation-33",
+      "category": "estimation",
+      "question": "How would you increase the revenue of Microsoft PowerPoint?"
+    },
+    {
+      "id": "estimation-34",
+      "category": "estimation",
+      "question": "How much storage space do you need for Google Maps?"
+    },
+    {
+      "id": "estimation-35",
+      "category": "estimation",
+      "question": "How many queries per second does Gmail get?"
+    },
+    {
+      "id": "estimation-36",
+      "category": "estimation",
+      "question": "How much money is spent in the USA per year on gas?"
+    },
+    {
+      "id": "estimation-37",
+      "category": "estimation",
+      "question": "How many pianists are there in New York City?"
+    },
+    {
+      "id": "estimation-38",
+      "category": "estimation",
+      "question": "Estimate AWS's total annual revenue."
+    },
+    {
+      "id": "estimation-39",
+      "category": "estimation",
+      "question": "How would you estimate the number of new users Amazon gets in a day?"
+    },
+    {
+      "id": "estimation-40",
+      "category": "estimation",
+      "question": "Estimate the number of tube lights used in a big city (population 10 million)."
+    },
+    {
+      "id": "estimation-41",
+      "category": "estimation",
+      "question": "How would you estimate the bandwidth of Gmail for a community on Mars?"
+    },
+    {
+      "id": "estimation-42",
+      "category": "estimation",
+      "question": "How many apps are in the Apple App Store or Google Play Store?"
+    },
+    {
+      "id": "estimation-43",
+      "category": "estimation",
+      "question": "Estimate the market size of Prime Video."
+    },
+    {
+      "id": "estimation-44",
+      "category": "estimation",
+      "question": "How much time do people spend waiting at traffic signals in the U.S. while in their vehicles?"
+    },
+    {
+      "id": "estimation-45",
+      "category": "estimation",
+      "question": "Estimate how many trains operate in the NYC subway."
+    },
+    {
+      "id": "estimation-46",
+      "category": "estimation",
+      "question": "Estimate the cost of storing Google Photos content."
+    },
+    {
+      "id": "estimation-47",
+      "category": "estimation",
+      "question": "How would you estimate the number of mobile phones sold by Xiaomi in a day?"
+    },
+    {
+      "id": "estimation-48",
+      "category": "estimation",
+      "question": "You created a new product to replace the mobile phone. How would you determine how many units to manufacture?"
+    },
+    {
+      "id": "estimation-49",
+      "category": "estimation",
+      "question": "How many mobile phones are there in the world?"
+    },
+    {
+      "id": "estimation-50",
+      "category": "estimation",
+      "question": "Estimate the total number of millennials who own homes in the U.S."
+    },
+    {
+      "id": "estimation-51",
+      "category": "estimation",
+      "question": "How many kindergarten teachers are there in the U.S.?"
+    },
+    {
+      "id": "estimation-52",
+      "category": "estimation",
+      "question": "How much would it cost to set up citywide Wi-Fi in New York?"
+    },
+    {
+      "id": "estimation-53",
+      "category": "estimation",
+      "question": "YouTube Premium has 1.5% of the initial YouTube user base sign up. What is the lifetime revenue from those users?"
+    },
+    {
+      "id": "estimation-54",
+      "category": "estimation",
+      "question": "How much revenue does Airbnb generate annually in India?"
+    },
+    {
+      "id": "estimation-55",
+      "category": "estimation",
+      "question": "Estimate the number of drones necessary to complete all Amazon deliveries in NYC."
+    },
+    {
+      "id": "estimation-56",
+      "category": "estimation",
+      "question": "How many iPhones and Android phones are there in the world? (Assume everyone has only one phone.)"
+    },
+    {
+      "id": "estimation-57",
+      "category": "estimation",
+      "question": "How many pizzas would you need to circle the Earth at the equator?"
+    },
+    {
+      "id": "estimation-58",
+      "category": "estimation",
+      "question": "How many drones would be needed to deliver all of FedEx's packages in the U.S.?"
+    },
+    {
+      "id": "estimation-59",
+      "category": "estimation",
+      "question": "How much revenue does your favorite restaurant make each year?"
+    },
+    {
+      "id": "estimation-60",
+      "category": "estimation",
+      "question": "Estimate the number of YouTube users."
+    },
+    {
+      "id": "estimation-61",
+      "category": "estimation",
+      "question": "How many calories are in a typical grocery-store item?"
+    },
+    {
+      "id": "estimation-62",
+      "category": "estimation",
+      "question": "Estimate the number of Groups on Facebook."
+    },
+    {
+      "id": "estimation-63",
+      "category": "estimation",
+      "question": "Estimate the number of hotels in NYC."
+    },
+    {
+      "id": "estimation-64",
+      "category": "estimation",
+      "question": "How would you estimate the space required for Google Photos?"
+    },
+    {
+      "id": "estimation-65",
+      "category": "estimation",
+      "question": "Estimate the bandwidth (bits/s) of a 747 crossing the Atlantic filled with CDs."
+    },
+    {
+      "id": "estimation-66",
+      "category": "estimation",
+      "question": "How many reviews are left on Amazon on a given Monday?"
+    },
+    {
+      "id": "estimation-67",
+      "category": "estimation",
+      "question": "If you launch YouTube TV in San Francisco, how much bandwidth is required?"
+    },
+    {
+      "id": "estimation-68",
+      "category": "estimation",
+      "question": "As an Amazon delivery PM, estimate how many face masks to stock in UK stores during COVID-19 lockdown."
+    },
+    {
+      "id": "estimation-69",
+      "category": "estimation",
+      "question": "How many drivers does Uber have in a medium-sized U.S. city?"
+    },
+    {
+      "id": "estimation-70",
+      "category": "estimation",
+      "question": "Estimate the number of actual COVID-19 positive people in India today."
+    },
+    {
+      "id": "estimation-71",
+      "category": "estimation",
+      "question": "Estimate the weight of a 747 airplane."
+    },
+    {
+      "id": "estimation-72",
+      "category": "estimation",
+      "question": "Tesla claims zero maintenance will make auto garages obsolete — estimate U.S. jobs impacted in 5 and 10 years."
+    },
+    {
+      "id": "estimation-73",
+      "category": "estimation",
+      "question": "How many videos can you watch with 2 GB of data?"
+    },
+    {
+      "id": "estimation-74",
+      "category": "estimation",
+      "question": "How much time is spent per day waiting for a human in automated systems in the U.S.?"
+    },
+    {
+      "id": "estimation-75",
+      "category": "estimation",
+      "question": "Estimate the market size of an online flight-insurance business in the U.S."
+    },
+    {
+      "id": "estimation-76",
+      "category": "estimation",
+      "question": "How much money does India lose due to traffic congestion?"
+    },
+    {
+      "id": "estimation-77",
+      "category": "estimation",
+      "question": "A biotech launches cell-based blood that reduces donation needs — how would you price it?"
+    },
+    {
+      "id": "estimation-78",
+      "category": "estimation",
+      "question": "What is the market size of toilet paper in Canada?"
+    },
+    {
+      "id": "estimation-79",
+      "category": "estimation",
+      "question": "Given G Suite revenue is $7B, how many G Suite users are there?"
+    },
+    {
+      "id": "estimation-80",
+      "category": "estimation",
+      "question": "Estimate the annual budget Facebook needs to maintain Facebook Photos."
+    },
+    {
+      "id": "estimation-81",
+      "category": "estimation",
+      "question": "Estimate the total tolls collected in one day across all toll plazas in a country."
+    },
+    {
+      "id": "estimation-82",
+      "category": "estimation",
+      "question": "Google entering language learning: estimate the TAM for people who want to learn a new language."
+    },
+    {
+      "id": "estimation-83",
+      "category": "estimation",
+      "question": "Estimate monthly active users for Dropbox."
+    },
+    {
+      "id": "estimation-84",
+      "category": "estimation",
+      "question": "Pan-India 24-hour grocery delivery: estimate how many 1-ton trucks are needed."
+    },
+    {
+      "id": "estimation-85",
+      "category": "estimation",
+      "question": "Estimate airport waiting time; propose a moonshot to reduce it."
+    },
+    {
+      "id": "estimation-86",
+      "category": "estimation",
+      "question": "Estimate daily WhatsApp messages in India."
+    },
+    {
+      "id": "estimation-87",
+      "category": "estimation",
+      "question": "How many restaurants are in New York City?"
+    },
+    {
+      "id": "estimation-88",
+      "category": "estimation",
+      "question": "How many windows are in New York City?"
+    },
+    {
+      "id": "estimation-89",
+      "category": "estimation",
+      "question": "Estimate the number of EV charging stations in the U.S."
+    },
+    {
+      "id": "estimation-90",
+      "category": "estimation",
+      "question": "Estimate daily passengers passing through security at an airport of your choice."
+    },
+    {
+      "id": "estimation-91",
+      "category": "estimation",
+      "question": "How many articles does the average American read per month?"
+    },
+    {
+      "id": "estimation-92",
+      "category": "estimation",
+      "question": "How many webcams were sold in the U.S. in 2020?"
+    },
+    {
+      "id": "estimation-93",
+      "category": "estimation",
+      "question": "Estimate how many videos are uploaded to YouTube per day."
+    },
+    {
+      "id": "estimation-94",
+      "category": "estimation",
+      "question": "Estimate Airbnb's annual U.S. revenue."
+    },
+    {
+      "id": "estimation-95",
+      "category": "estimation",
+      "question": "How much revenue could Google earn from driverless cars?"
+    },
+    {
+      "id": "estimation-96",
+      "category": "estimation",
+      "question": "If Amazon raises Prime's price, estimate incremental revenue (or loss)."
+    },
+    {
+      "id": "estimation-97",
+      "category": "estimation",
+      "question": "Estimate the number of electric vehicles in Bangalore."
+    },
+    {
+      "id": "estimation-98",
+      "category": "estimation",
+      "question": "Estimate ad revenue for a photo-sharing social media app."
+    },
+    {
+      "id": "estimation-99",
+      "category": "estimation",
+      "question": "What is the market size of the U.K. art market?"
+    },
+    {
+      "id": "estimation-100",
+      "category": "estimation",
+      "question": "Estimate the number of daily transactions handled by Visa worldwide."
+    },
+    {
+      "id": "behavioral-1",
+      "category": "behavioral",
+      "question": "In layman terms, describe your day-to-day activities as a Product Manager."
+    },
+    {
+      "id": "behavioral-2",
+      "category": "behavioral",
+      "question": "How would you keep developers working on a product motivated and producing quality work?"
+    },
+    {
+      "id": "behavioral-3",
+      "category": "behavioral",
+      "question": "What are you looking for in your next role?"
+    },
+    {
+      "id": "behavioral-4",
+      "category": "behavioral",
+      "question": "You are a PM about to enter a product launch meeting with all stakeholders. How would you prepare?"
+    },
+    {
+      "id": "behavioral-5",
+      "category": "behavioral",
+      "question": "If three top-priority items are requested for a release but engineering capacity is limited, and the client insists on all three, what will you do?"
+    },
+    {
+      "id": "behavioral-6",
+      "category": "behavioral",
+      "question": "A senior client calls you early morning to complain that the B2B product is not working (with no details). How would you approach this?"
+    },
+    {
+      "id": "behavioral-7",
+      "category": "behavioral",
+      "question": "A customer reported an issue with your software in a public forum and threatened to switch platforms. How would you handle it?"
+    },
+    {
+      "id": "behavioral-8",
+      "category": "behavioral",
+      "question": "Tell me about a time you investigated a problem on your team and had to dig through multiple layers to figure it out. Who did you talk to and what information proved most valuable?"
+    },
+    {
+      "id": "behavioral-9",
+      "category": "behavioral",
+      "question": "Where do you see yourself in 5 years?"
+    },
+    {
+      "id": "behavioral-10",
+      "category": "behavioral",
+      "question": "Why should Amazon not hire you?"
+    },
+    {
+      "id": "behavioral-11",
+      "category": "behavioral",
+      "question": "Tell me about a time you had conflict with a team member or manager."
+    },
+    {
+      "id": "behavioral-12",
+      "category": "behavioral",
+      "question": "How do you prioritize Sales needs vs Engineering needs?"
+    },
+    {
+      "id": "behavioral-13",
+      "category": "behavioral",
+      "question": "Tell me about a time when you influenced engineering to build a particular feature."
+    },
+    {
+      "id": "behavioral-14",
+      "category": "behavioral",
+      "question": "Tell me about a time when you used data to influence or persuade people."
+    },
+    {
+      "id": "behavioral-15",
+      "category": "behavioral",
+      "question": "Describe a complex topic as if I were a high school student who knows nothing about it."
+    },
+    {
+      "id": "behavioral-16",
+      "category": "behavioral",
+      "question": "How do you know when to cut corners to get a product out the door?"
+    },
+    {
+      "id": "behavioral-17",
+      "category": "behavioral",
+      "question": "How do you prioritize requirements?"
+    },
+    {
+      "id": "behavioral-18",
+      "category": "behavioral",
+      "question": "How would you convince the Engineering team to build a very different product than they want to develop?"
+    },
+    {
+      "id": "behavioral-19",
+      "category": "behavioral",
+      "question": "How would you make something significantly simpler for a customer?"
+    },
+    {
+      "id": "behavioral-20",
+      "category": "behavioral",
+      "question": "How do you motivate a Product team?"
+    },
+    {
+      "id": "behavioral-21",
+      "category": "behavioral",
+      "question": "You are the PM of a video conferencing app (pre-COVID). You ran a survey with 400,000 respondents: 40% gave a score of 2, and 40% gave a score of 4 (on a 1–5 scale). How would you use these results?"
+    },
+    {
+      "id": "behavioral-22",
+      "category": "behavioral",
+      "question": "What is the most challenging project you have been on?"
+    },
+    {
+      "id": "behavioral-23",
+      "category": "behavioral",
+      "question": "What kind of project would you like to work on?"
+    },
+    {
+      "id": "behavioral-24",
+      "category": "behavioral",
+      "question": "Was there a time when you disagreed with your manager's decision? How did it play out, and what happened in the end?"
+    },
+    {
+      "id": "behavioral-25",
+      "category": "behavioral",
+      "question": "As a PM, which is your favorite team to work with and why?"
+    },
+    {
+      "id": "behavioral-26",
+      "category": "behavioral",
+      "question": "Your Engineering Manager wants to work on a new feature, but you have no bandwidth. How will you handle it?"
+    },
+    {
+      "id": "behavioral-27",
+      "category": "behavioral",
+      "question": "Tell me about a time when you made a product or process simpler for customers, with significant impact."
+    },
+    {
+      "id": "behavioral-28",
+      "category": "behavioral",
+      "question": "How did you handle communicating with various types of stakeholders on a recent project, and what did you find most effective?"
+    },
+    {
+      "id": "behavioral-29",
+      "category": "behavioral",
+      "question": "Tell us about yourself and your career."
+    },
+    {
+      "id": "behavioral-30",
+      "category": "behavioral",
+      "question": "Have you ever disagreed with your Engineering counterparts? What did you do when a build decision did not align with your original vision?"
+    },
+    {
+      "id": "behavioral-31",
+      "category": "behavioral",
+      "question": "How did you resolve conflict among different groups?"
+    },
+    {
+      "id": "behavioral-32",
+      "category": "behavioral",
+      "question": "Describe the most significant continuous improvement project you've led. What was the catalyst, and how did you approach it?"
+    },
+    {
+      "id": "behavioral-33",
+      "category": "behavioral",
+      "question": "Tell me about a situation where things did not go as planned. What did you learn from it?"
+    },
+    {
+      "id": "behavioral-34",
+      "category": "behavioral",
+      "question": "How do you prioritize technical debt against new features?"
+    },
+    {
+      "id": "behavioral-35",
+      "category": "behavioral",
+      "question": "Tell me about a time when you gave a simple solution to a complex problem."
+    },
+    {
+      "id": "behavioral-36",
+      "category": "behavioral",
+      "question": "Tell me about a time when you changed your decision in a meeting based on stakeholder input. What was the situation, and what convinced you?"
+    },
+    {
+      "id": "behavioral-37",
+      "category": "behavioral",
+      "question": "YouTube traffic went down 5% — how would you report this issue to your manager?"
+    },
+    {
+      "id": "behavioral-38",
+      "category": "behavioral",
+      "question": "Tell me about a time you had to change the way you work."
+    },
+    {
+      "id": "behavioral-39",
+      "category": "behavioral",
+      "question": "Tell us about a time you had an idea your team was skeptical about. How did you convince them?"
+    },
+    {
+      "id": "behavioral-40",
+      "category": "behavioral",
+      "question": "How would you motivate your team to align around your idea?"
+    },
+    {
+      "id": "behavioral-41",
+      "category": "behavioral",
+      "question": "How do you motivate a team?"
+    },
+    {
+      "id": "behavioral-42",
+      "category": "behavioral",
+      "question": "Provide an example of when you had to analyze a large amount of data and what insights you came up with."
+    },
+    {
+      "id": "behavioral-43",
+      "category": "behavioral",
+      "question": "Tell me about a time when you were halfway to meeting your goal but had to pivot because the goal wasn't right."
+    },
+    {
+      "id": "behavioral-44",
+      "category": "behavioral",
+      "question": "Can you tell me about a time when you had to deal with customer complaints?"
+    },
+    {
+      "id": "behavioral-45",
+      "category": "behavioral",
+      "question": "What do you enjoy about being a PM? What do you not enjoy?"
+    },
+    {
+      "id": "behavioral-46",
+      "category": "behavioral",
+      "question": "Some companies don't think they need PMs. Even Google didn't have them for a while. What's your opinion?"
+    },
+    {
+      "id": "behavioral-47",
+      "category": "behavioral",
+      "question": "Tell me about a time you built something from 0 to 1."
+    },
+    {
+      "id": "behavioral-48",
+      "category": "behavioral",
+      "question": "Tell me about a time when you had to manage upwards (aligning senior stakeholders)."
+    },
+    {
+      "id": "behavioral-49",
+      "category": "behavioral",
+      "question": "How do you deal with engineering challenges at your current job?"
+    },
+    {
+      "id": "behavioral-50",
+      "category": "behavioral",
+      "question": "How will you communicate to your team that you made a mistake? What steps would you take?"
+    },
+    {
+      "id": "behavioral-51",
+      "category": "behavioral",
+      "question": "Tell me about a time when you faced a problem that had multiple possible solutions."
+    },
+    {
+      "id": "behavioral-52",
+      "category": "behavioral",
+      "question": "If you only had one engineering resource, where would you invest it: fixing a critical bug or shipping a critical feature?"
+    },
+    {
+      "id": "behavioral-53",
+      "category": "behavioral",
+      "question": "How do you prioritize among competing features?"
+    },
+    {
+      "id": "behavioral-54",
+      "category": "behavioral",
+      "question": "What is your superpower as a product manager?"
+    },
+    {
+      "id": "behavioral-55",
+      "category": "behavioral",
+      "question": "What would you do if your product is not growing despite high-quality execution?"
+    },
+    {
+      "id": "behavioral-56",
+      "category": "behavioral",
+      "question": "How do you handle missed deadlines or scope creep?"
+    },
+    {
+      "id": "behavioral-57",
+      "category": "behavioral",
+      "question": "Share an example of a time when you empowered someone else."
+    },
+    {
+      "id": "behavioral-58",
+      "category": "behavioral",
+      "question": "You're a PM at Walmart. How would you ensure the development team accurately estimates their work?"
+    },
+    {
+      "id": "behavioral-59",
+      "category": "behavioral",
+      "question": "What is one career failure you faced? How did you deal with it?"
+    },
+    {
+      "id": "behavioral-60",
+      "category": "behavioral",
+      "question": "What challenges in your previous role would you want to avoid in your new role?"
+    },
+    {
+      "id": "behavioral-61",
+      "category": "behavioral",
+      "question": "How do you define and track leading vs lagging indicators in product strategy?"
+    },
+    {
+      "id": "behavioral-62",
+      "category": "behavioral",
+      "question": "Tell me about a product you worked on that failed."
+    },
+    {
+      "id": "behavioral-63",
+      "category": "behavioral",
+      "question": "As a PM at Google, describe a time when you made a data-driven product decision with limited information."
+    },
+    {
+      "id": "behavioral-64",
+      "category": "behavioral",
+      "question": "What makes a good PM?"
+    },
+    {
+      "id": "behavioral-65",
+      "category": "behavioral",
+      "question": "Instagram's recent profile grid update has sparked mixed feedback. As a Product Manager, how would you gather user insights and address negative feedback?"
+    },
+    {
+      "id": "behavioral-66",
+      "category": "behavioral",
+      "question": "Your organization is undergoing a multi-year transformation. The product you're leading has missed deadlines and faces cross-functional misalignment. How would you approach this, and what tools/methods would you use?"
+    },
+    {
+      "id": "behavioral-67",
+      "category": "behavioral",
+      "question": "Tell me about a time when you launched or brought a product to market. What challenges did you face?"
+    },
+    {
+      "id": "behavioral-68",
+      "category": "behavioral",
+      "question": "You've just been handed a 10% cut in the engineering budget. How would you still deliver on your roadmap?"
+    },
+    {
+      "id": "behavioral-69",
+      "category": "behavioral",
+      "question": "Tell me about a time when you received harsh feedback. How did you react?"
+    },
+    {
+      "id": "behavioral-70",
+      "category": "behavioral",
+      "question": "You are a senior PM for a data product. How would you prioritize between top customer requests, technical debt, and partner integration requirements?"
+    },
+    {
+      "id": "behavioral-71",
+      "category": "behavioral",
+      "question": "You are working across multiple teams, and everyone needs your time. How will you manage your time and ensure product success?"
+    },
+    {
+      "id": "behavioral-72",
+      "category": "behavioral",
+      "question": "You are responsible for a product that involves multiple teams, and you need to get them on board with your strategy. How will you do it?"
+    },
+    {
+      "id": "behavioral-73",
+      "category": "behavioral",
+      "question": "Why should I hire you for this role?"
+    },
+    {
+      "id": "behavioral-74",
+      "category": "behavioral",
+      "question": "How do you determine what customers want and need?"
+    },
+    {
+      "id": "behavioral-75",
+      "category": "behavioral",
+      "question": "What's a successful brainstorming session you conducted, and why do you consider it successful?"
+    },
+    {
+      "id": "behavioral-76",
+      "category": "behavioral",
+      "question": "Tell me about a time when you proactively identified an issue that would impact your team. How did you solve it?"
+    },
+    {
+      "id": "behavioral-77",
+      "category": "behavioral",
+      "question": "Tell us about a situation where you had to earn the trust of a group to move forward."
+    },
+    {
+      "id": "behavioral-78",
+      "category": "behavioral",
+      "question": "Why do you want to work at Google?"
+    },
+    {
+      "id": "behavioral-79",
+      "category": "behavioral",
+      "question": "You're a Facebook PM and want to build a restaurant review and booking platform like Yelp. How would you pitch it to your leader? What data would you need? What goal would you set?"
+    },
+    {
+      "id": "behavioral-80",
+      "category": "behavioral",
+      "question": "How would you put together a team?"
+    },
+    {
+      "id": "behavioral-81",
+      "category": "behavioral",
+      "question": "How would you handle a situation where some workers believe they hold power over minorities in the workplace?"
+    },
+    {
+      "id": "behavioral-82",
+      "category": "behavioral",
+      "question": "Tell me about a time when you had to challenge a teammate's unpopular opinion."
+    },
+    {
+      "id": "behavioral-83",
+      "category": "behavioral",
+      "question": "Give an example of a mission or goal you didn't think was achievable. How did you help your team try to achieve it? Were you successful?"
+    },
+    {
+      "id": "behavioral-84",
+      "category": "behavioral",
+      "question": "Can you give us a few examples where you planned and conducted A/B tests?"
+    },
+    {
+      "id": "behavioral-85",
+      "category": "behavioral",
+      "question": "Can you give me an example where you made changes to your app based on user feedback?"
+    },
+    {
+      "id": "behavioral-86",
+      "category": "behavioral",
+      "question": "Tell me about a time when you didn't have enough data to make the right decision. What did you do, and was it correct in the end?"
+    },
+    {
+      "id": "behavioral-87",
+      "category": "behavioral",
+      "question": "Tell me about a time when you used data to reach a conclusion."
+    },
+    {
+      "id": "behavioral-88",
+      "category": "behavioral",
+      "question": "How is your background and experience relevant to this role?"
+    },
+    {
+      "id": "behavioral-89",
+      "category": "behavioral",
+      "question": "Tell me about a time when you had to mend your relationship with a colleague."
+    },
+    {
+      "id": "behavioral-90",
+      "category": "behavioral",
+      "question": "What is an example of asking 5 Whys to a customer?"
+    },
+    {
+      "id": "behavioral-91",
+      "category": "behavioral",
+      "question": "Who was your most difficult customer? How did you handle them?"
+    },
+    {
+      "id": "behavioral-92",
+      "category": "behavioral",
+      "question": "What would you do to make sure employees do not feel lonely?"
+    },
+    {
+      "id": "behavioral-93",
+      "category": "behavioral",
+      "question": "Tell me about a time when you had to deal with ambiguity."
+    },
+    {
+      "id": "behavioral-94",
+      "category": "behavioral",
+      "question": "How do you know if your users are satisfied with your product?"
+    },
+    {
+      "id": "behavioral-95",
+      "category": "behavioral",
+      "question": "Describe a difficult technical concept to me."
+    },
+    {
+      "id": "behavioral-96",
+      "category": "behavioral",
+      "question": "How do you deal with a person who believes in orthodoxy and does not believe in metrics or feature validation?"
+    },
+    {
+      "id": "behavioral-97",
+      "category": "behavioral",
+      "question": "How would you handle a HIPPO (Highest Paid Person's Opinion) situation and resolve conflicts between HIPPOs?"
+    },
+    {
+      "id": "behavioral-98",
+      "category": "behavioral",
+      "question": "Provide an example where you took a product from inception to launch. What challenges did you face?"
+    },
+    {
+      "id": "behavioral-99",
+      "category": "behavioral",
+      "question": "What makes you want to leave your current job?"
+    },
+    {
+      "id": "behavioral-100",
+      "category": "behavioral",
+      "question": "What makes you want to stay in Product Management long term?"
+    },
+    {
+      "id": "strategy-1",
+      "category": "strategy",
+      "question": "Should Razorpay build its own consumer UPI app? Your CEO wants a recommendation."
+    },
+    {
+      "id": "strategy-2",
+      "category": "strategy",
+      "question": "How would you evaluate whether to build, buy, or partner for a new fraud-detection capability?"
+    },
+    {
+      "id": "strategy-3",
+      "category": "strategy",
+      "question": "How would you launch a standalone food-delivery app in a market where two incumbents own 90% share?"
+    },
+    {
+      "id": "strategy-4",
+      "category": "strategy",
+      "question": "WhatsApp wants to grow revenue in India — what's your strategy?"
+    },
+    {
+      "id": "strategy-5",
+      "category": "strategy",
+      "question": "Should Netflix enter the live-sports streaming market? Make the call."
+    },
+    {
+      "id": "strategy-6",
+      "category": "strategy",
+      "question": "How would you price a brand-new B2B analytics product with no direct comparable?"
+    },
+    {
+      "id": "strategy-7",
+      "category": "strategy",
+      "question": "Amazon wants to enter the Indian pharmacy market — what's your go-to-market?"
+    },
+    {
+      "id": "strategy-8",
+      "category": "strategy",
+      "question": "Your subscription product has flat growth. Do you cut price, add a tier, or change the funnel?"
+    },
+    {
+      "id": "strategy-9",
+      "category": "strategy",
+      "question": "How would you 4x Swiggy's revenue over three years?"
+    },
+    {
+      "id": "strategy-10",
+      "category": "strategy",
+      "question": "Should Spotify build a podcast-creation tool, or acquire one?"
+    },
+    {
+      "id": "strategy-11",
+      "category": "strategy",
+      "question": "How would you decide which two countries to expand a fintech wallet into next?"
+    },
+    {
+      "id": "strategy-12",
+      "category": "strategy",
+      "question": "PhonePe got a huge valuation — as PM, what's the next strategic bet you'd make?"
+    },
+    {
+      "id": "strategy-13",
+      "category": "strategy",
+      "question": "How would you take a successful US SaaS product into India?"
+    },
+    {
+      "id": "strategy-14",
+      "category": "strategy",
+      "question": "Uber is losing share to a cheaper local competitor in one city. What's your strategic response?"
+    },
+    {
+      "id": "strategy-15",
+      "category": "strategy",
+      "question": "How would you monetize a free consumer app with 50M MAU without hurting engagement?"
+    },
+    {
+      "id": "strategy-16",
+      "category": "strategy",
+      "question": "Should a bank build its own UPI stack or ride a third-party aggregator?"
+    },
+    {
+      "id": "strategy-17",
+      "category": "strategy",
+      "question": "How would you sequence a 0→1 product roadmap for a new crypto exchange over 18 months?"
+    },
+    {
+      "id": "strategy-18",
+      "category": "strategy",
+      "question": "A competitor just copied your flagship feature. What's your strategy?"
+    },
+    {
+      "id": "strategy-19",
+      "category": "strategy",
+      "question": "How would you decide whether to go freemium or free-trial for a new productivity app?"
+    },
+    {
+      "id": "strategy-20",
+      "category": "strategy",
+      "question": "Your marketplace has strong supply but weak demand. What's your growth strategy?"
+    },
+    {
+      "id": "technical-1",
+      "category": "technical",
+      "question": "How would you critique the app you use most? What one change would you ship?"
+    },
+    {
+      "id": "technical-2",
+      "category": "technical",
+      "question": "Explain how UPI works to a non-technical stakeholder."
+    },
+    {
+      "id": "technical-3",
+      "category": "technical",
+      "question": "Design a payments API — what makes it good to build on?"
+    },
+    {
+      "id": "technical-4",
+      "category": "technical",
+      "question": "How would you design a notification system (triggers, channels, settings, delivery guarantees)?"
+    },
+    {
+      "id": "technical-5",
+      "category": "technical",
+      "question": "How does a food-delivery app match orders to delivery partners? Where would you improve it?"
+    },
+    {
+      "id": "technical-6",
+      "category": "technical",
+      "question": "Design a real-time fraud-decisioning service that returns approve/review/reject."
+    },
+    {
+      "id": "technical-7",
+      "category": "technical",
+      "question": "How would you design a URL shortener, and what trade-offs matter for a PM?"
+    },
+    {
+      "id": "technical-8",
+      "category": "technical",
+      "question": "Explain how a recommendation feed works and where a PM makes the key calls."
+    },
+    {
+      "id": "technical-9",
+      "category": "technical",
+      "question": "Design a rate limiter for a public API — what would you optimize for?"
+    },
+    {
+      "id": "technical-10",
+      "category": "technical",
+      "question": "How would you design an ETA system for a ride-hailing app?"
+    },
+    {
+      "id": "technical-11",
+      "category": "technical",
+      "question": "Critique the checkout flow of any e-commerce app you know well."
+    },
+    {
+      "id": "technical-12",
+      "category": "technical",
+      "question": "How does search autocomplete work, and how would you measure its quality?"
+    },
+    {
+      "id": "technical-13",
+      "category": "technical",
+      "question": "Design a system to detect and block repeat fraudsters before account creation."
+    },
+    {
+      "id": "technical-14",
+      "category": "technical",
+      "question": "How would you design offline support for a note-taking app?"
+    },
+    {
+      "id": "technical-15",
+      "category": "technical",
+      "question": "Explain caching to a business stakeholder and where it would help your product."
+    },
+    {
+      "id": "technical-16",
+      "category": "technical",
+      "question": "How would you design a file-sharing/collaboration feature like Google Docs comments?"
+    },
+    {
+      "id": "technical-17",
+      "category": "technical",
+      "question": "What are the trade-offs between polling and webhooks for an integration product?"
+    },
+    {
+      "id": "technical-18",
+      "category": "technical",
+      "question": "How would you design a system to send 10M push notifications reliably?"
+    },
+    {
+      "id": "hr-1",
+      "category": "hr",
+      "question": "Tell me about yourself."
+    },
+    {
+      "id": "hr-2",
+      "category": "hr",
+      "question": "Why are you looking to leave your current role?"
+    },
+    {
+      "id": "hr-3",
+      "category": "hr",
+      "question": "Why do you want to work at this company specifically?"
+    },
+    {
+      "id": "hr-4",
+      "category": "hr",
+      "question": "Where do you see yourself in 5 years?"
+    },
+    {
+      "id": "hr-5",
+      "category": "hr",
+      "question": "What are your biggest strengths as a PM?"
+    },
+    {
+      "id": "hr-6",
+      "category": "hr",
+      "question": "What's your biggest weakness, and what are you doing about it?"
+    },
+    {
+      "id": "hr-7",
+      "category": "hr",
+      "question": "What are your salary expectations?"
+    },
+    {
+      "id": "hr-8",
+      "category": "hr",
+      "question": "Walk me through your resume."
+    },
+    {
+      "id": "hr-9",
+      "category": "hr",
+      "question": "Why should we hire you for this role?"
+    },
+    {
+      "id": "hr-10",
+      "category": "hr",
+      "question": "What are you looking for in your next role?"
+    },
+    {
+      "id": "hr-11",
+      "category": "hr",
+      "question": "How would your current teammates describe you?"
+    },
+    {
+      "id": "hr-12",
+      "category": "hr",
+      "question": "What's your notice period and availability?"
+    },
+    {
+      "id": "hr-13",
+      "category": "hr",
+      "question": "Why did you move from engineering into product management?"
+    },
+    {
+      "id": "hr-14",
+      "category": "hr",
+      "question": "Tell me about a gap or a short stint on your resume."
+    },
+    {
+      "id": "hr-15",
+      "category": "hr",
+      "question": "What kind of team and manager do you do your best work with?"
+    },
+    {
+      "id": "hr-16",
+      "category": "hr",
+      "question": "What do you enjoy most, and least, about being a PM?"
+    },
+    {
+      "id": "hr-17",
+      "category": "hr",
+      "question": "Are you interviewing elsewhere / how far along are you?"
+    },
+    {
+      "id": "hr-18",
+      "category": "hr",
+      "question": "What questions do you have for us?"
+    },
+    {
+      "id": "hr-19",
+      "category": "hr",
+      "question": "What motivates you day to day?"
+    },
+    {
+      "id": "hr-20",
+      "category": "hr",
+      "question": "How do you handle work-life balance and pressure?"
+    },
+    {
+      "id": "hiring-manager-1",
+      "category": "hiring-manager",
+      "question": "Walk me through a product you shipped end-to-end. What was the hardest decision?"
+    },
+    {
+      "id": "hiring-manager-2",
+      "category": "hiring-manager",
+      "question": "Tell me about the most impactful thing you've built and how you measured it."
+    },
+    {
+      "id": "hiring-manager-3",
+      "category": "hiring-manager",
+      "question": "Tell me about a product or launch that failed. What did you learn?"
+    },
+    {
+      "id": "hiring-manager-4",
+      "category": "hiring-manager",
+      "question": "Describe a time you disagreed with engineering (or a senior stakeholder). What happened?"
+    },
+    {
+      "id": "hiring-manager-5",
+      "category": "hiring-manager",
+      "question": "Tell me about a time you influenced a decision without any formal authority."
+    },
+    {
+      "id": "hiring-manager-6",
+      "category": "hiring-manager",
+      "question": "What's the toughest prioritization call you've made, and how did you make it?"
+    },
+    {
+      "id": "hiring-manager-7",
+      "category": "hiring-manager",
+      "question": "Tell me about a time you used data to change a decision."
+    },
+    {
+      "id": "hiring-manager-8",
+      "category": "hiring-manager",
+      "question": "Describe a 0→1 product you built. What was ambiguous and how did you handle it?"
+    },
+    {
+      "id": "hiring-manager-9",
+      "category": "hiring-manager",
+      "question": "Tell me about a time you had to cut scope under a hard deadline."
+    },
+    {
+      "id": "hiring-manager-10",
+      "category": "hiring-manager",
+      "question": "How did you handle a project where things went badly off-track?"
+    },
+    {
+      "id": "hiring-manager-11",
+      "category": "hiring-manager",
+      "question": "Tell me about a metric you owned and moved. What did you actually do?"
+    },
+    {
+      "id": "hiring-manager-12",
+      "category": "hiring-manager",
+      "question": "Describe a time you changed your mind based on user or stakeholder input."
+    },
+    {
+      "id": "hiring-manager-13",
+      "category": "hiring-manager",
+      "question": "What's a decision you'd make differently today, and why?"
+    },
+    {
+      "id": "hiring-manager-14",
+      "category": "hiring-manager",
+      "question": "Tell me about a time you had to align multiple teams around one strategy."
+    },
+    {
+      "id": "hiring-manager-15",
+      "category": "hiring-manager",
+      "question": "Describe the hardest trade-off you've made between speed and quality."
+    },
+    {
+      "id": "hiring-manager-16",
+      "category": "hiring-manager",
+      "question": "Tell me about a time you pushed back on a leader's idea. How did it go?"
+    },
+    {
+      "id": "hiring-manager-17",
+      "category": "hiring-manager",
+      "question": "What's the most technical problem you've had to reason about as a PM?"
+    },
+    {
+      "id": "hiring-manager-18",
+      "category": "hiring-manager",
+      "question": "Tell me about a time you turned around an underperforming product or feature."
+    }
+  ],
+  "cases": [
+    {
+      "id": "meesho-crisis",
+      "title": "The ₹20cr shortfall",
+      "question": "You released a feature worth ₹100cr in scope. Due to an issue, ₹20cr of that fell through. Walk me through exactly what you do.",
+      "category": "problem",
+      "stages": [
+        {
+          "question": "First 60 minutes: what do you do and in what order?",
+          "considerations": [
+            "Assess blast radius: is ₹20cr still leaking or already lost? Contain first.",
+            "Stand up a war-room + single owner; notify stakeholders with a facts-only update.",
+            "Decide rollback vs forward-fix based on reversibility and time-to-fix.",
+            "Preserve data/logs for root-cause before anything is overwritten."
+          ],
+          "pushback": "Engineering says a clean rollback will itself cost ₹5cr in downstream breakage. Now what?"
+        },
+        {
+          "question": "How do you find the root cause? Give me your structure.",
+          "considerations": [
+            "Confirm it's real, not a reporting artifact (instrumentation check first).",
+            "Internal: recent launch/config, bug, infra failure, dependency change.",
+            "External: seasonality, a partner/PSP outage, market event.",
+            "Segment by geo/platform/cohort to localize the ₹20cr."
+          ],
+          "pushback": "The metric team says tracking looks fine and the money genuinely didn't convert. Where do you look next?"
+        },
+        {
+          "question": "What do you change so this never happens again?",
+          "considerations": [
+            "Add a pre-launch guardrail/canary + kill-switch for high-scope releases.",
+            "Define a real-time guardrail metric with alerting thresholds.",
+            "Blameless post-mortem; convert learnings into launch-checklist gates.",
+            "Right-size rollout (phased %) for anything above a ₹-threshold."
+          ],
+          "pushback": "Leadership wants the feature re-shipped this week. How do you balance speed vs the safeguards you just described?"
+        }
+      ],
+      "rubric": [
+        "Triaged before diagnosing",
+        "MECE root-cause structure",
+        "Quantified / money-aware",
+        "Concrete preventive action",
+        "Handled pushback with judgment"
+      ]
+    },
+    {
+      "id": "razorpay-upi",
+      "title": "Should Razorpay build its own UPI app?",
+      "question": "Your CEO asks you to evaluate whether Razorpay should build its own consumer UPI app. Give a recommendation.",
+      "category": "strategy",
+      "stages": [
+        {
+          "question": "Before any recommendation — how do you frame the decision?",
+          "considerations": [
+            "Clarify the strategic objective: consumer distribution? data? defensibility vs PhonePe/GPay?",
+            "Frame as build vs partner vs stay-B2B, not just yes/no.",
+            "Name constraints: NPCI/regulatory, 30% UPI market-share cap, CAC of a consumer app."
+          ],
+          "pushback": "The CEO says 'assume distribution isn't a problem'. Does your framing change?"
+        },
+        {
+          "question": "Walk the trade-offs. What are the 2–3 real options and their costs?",
+          "considerations": [
+            "Build: huge CAC, brand shift B2B→B2C, years to scale, but owns consumer data + defensibility.",
+            "Partner/embed: faster, lower risk, but weaker moat.",
+            "Stay B2B and go deeper on merchant payments/credit where they already win.",
+            "Consumer UPI is near-zero-margin — monetization must come from adjacent products."
+          ],
+          "pushback": "PhonePe and GPay own ~85% share. What's your honest read on Razorpay's odds?"
+        },
+        {
+          "question": "Your recommendation in 3 sentences, plus the one metric that proves you right.",
+          "considerations": [
+            "Take a clear stance (most defensible: don't build a standalone app; double down on merchant + embedded UPI).",
+            "State the leading metric (e.g., merchant UPI TPV / attach of credit) you'd watch.",
+            "Name the disconfirming signal that would reverse your call."
+          ],
+          "pushback": "If you're wrong and a competitor's consumer app starts eating your merchant relationships, what's your hedge?"
+        }
+      ],
+      "rubric": [
+        "Objective framed before solution",
+        "Genuine build/buy/partner options",
+        "Quantitative trade-off reasoning",
+        "Committed recommendation",
+        "Named a proof metric + disconfirmer"
+      ]
+    },
+    {
+      "id": "google-payments",
+      "title": "Payments for very busy people",
+      "question": "You're the PM of Payments at Google, tasked with building a product for very busy people. Design it.",
+      "category": "design",
+      "stages": [
+        {
+          "question": "Clarify scope and pick the user. Who exactly is 'very busy'?",
+          "considerations": [
+            "Clarify: platform, geography, B2C vs SMB, existing Google Pay footprint.",
+            "Pick one segment (e.g., time-poor working parents, or SMB owners) and their JTBD.",
+            "State the core need: reduce time/cognitive load per payment decision."
+          ],
+          "pushback": "Assume it's Indian SMB owners. Does your design change?"
+        },
+        {
+          "question": "What are the top pain points, and which one do you solve first?",
+          "considerations": [
+            "Enumerate pains: repetitive bills, reconciliation, remembering due dates, context-switching.",
+            "Prioritize one (e.g., automated recurring + proactive nudges).",
+            "Say why that one first (frequency + defensible with Google's context signals)."
+          ],
+          "pushback": "How is this meaningfully better than what PhonePe/GPay autopay already do?"
+        },
+        {
+          "question": "Your solution + the success metric and a guardrail.",
+          "considerations": [
+            "Define MVP crisply (not the everything-app).",
+            "North Star: time saved / payments completed hands-off.",
+            "Guardrail: failed-payment rate, trust/opt-out rate, fraud on automation."
+          ],
+          "pushback": "Automation increases fraud/mistaken-payment risk. How do you keep trust?"
+        }
+      ],
+      "rubric": [
+        "Narrowed to a real user + JTBD",
+        "Prioritized with explicit reasoning",
+        "Differentiated vs incumbents",
+        "North Star + guardrail metric",
+        "Reasoned about trust/risk"
+      ]
+    },
+    {
+      "id": "conversion-vs-fraud",
+      "title": "Checkout lift, fraud spike",
+      "question": "A new instant-checkout feature increased conversion 10% but also increased fraud losses 25%. What do you do?",
+      "category": "strategy",
+      "stages": [
+        {
+          "question": "How do you frame this trade-off and what data do you pull first?",
+          "considerations": [
+            "Compute net: is the 10% conversion $ gain > the 25% fraud $ loss? Get absolute numbers.",
+            "Segment fraud: which cohorts/BINs/geos/amounts drive the 25%?",
+            "Separate first-party (friendly) fraud from third-party."
+          ],
+          "pushback": "Finance says net revenue is still up 4%. Does that mean you ship it as-is?"
+        },
+        {
+          "question": "What levers do you have, and which do you pull?",
+          "considerations": [
+            "Risk-based step-up (3DS/OTP) only on high-risk segments — keep low-risk frictionless.",
+            "Tune rules/model thresholds for the offending cohorts.",
+            "Velocity/limits on the exact fraud pattern; manual-review queue for the gray zone."
+          ],
+          "pushback": "Adding step-up on high-risk cohorts drops their conversion. How do you decide the threshold?"
+        },
+        {
+          "question": "How do you validate and what do you commit to?",
+          "considerations": [
+            "A/B the targeted-friction version vs control; measure net $ + auth rate + chargeback rate.",
+            "Set a guardrail auto-rollback if chargeback rate crosses X.",
+            "Recommend: keep the feature, add risk-based friction — quantify expected net."
+          ],
+          "pushback": "Chargebacks lag 30–60 days. How do you avoid declaring victory too early?"
+        }
+      ],
+      "rubric": [
+        "Reasoned on net $ not raw %",
+        "Segmented the fraud",
+        "Targeted (not blanket) friction",
+        "A/B + guardrail plan",
+        "Handled chargeback-lag nuance"
+      ]
+    },
+    {
+      "id": "genai-trust",
+      "title": "The AI agents don't trust",
+      "question": "Your GenAI fraud-decisioning assistant shows 85% agreement with agents in shadow mode, but agents report low trust in its recommendations. Diagnose and fix.",
+      "category": "problem",
+      "stages": [
+        {
+          "question": "How do you diagnose the trust gap? 85% agreement sounds fine on paper.",
+          "considerations": [
+            "Analyze the 15% disagreements: are they high-stakes cases? That's where trust breaks.",
+            "Is the rationale human-readable and specific, or generic? Trust needs explainability.",
+            "Are false-negatives (says approve, is fraud) concentrated? One bad miss kills trust."
+          ],
+          "pushback": "Agents say 'it's right most of the time but I can't tell WHEN it's wrong.' What does that tell you?"
+        },
+        {
+          "question": "What do you actually change in the product?",
+          "considerations": [
+            "Surface calibrated confidence + the specific signals behind each call, not just a verdict.",
+            "Make it escalate/abstain on ambiguous cases rather than guess.",
+            "Track overrides and feed disagreements back into rules/prompt; show agents their feedback changed it."
+          ],
+          "pushback": "How would you measure whether trust actually improved, not just agreement?"
+        },
+        {
+          "question": "What's your launch gate before moving from shadow to assisted mode?",
+          "considerations": [
+            "Set thresholds: false-negative rate < X%, agreement on high-value cases, agent-satisfaction score.",
+            "Human-in-the-loop preserved; no auto-approve/reject.",
+            "Staged rollout with override tracking + regression re-test after prompt changes."
+          ],
+          "pushback": "Compliance asks what happens the first time it confidently approves a big fraud. Your answer?"
+        }
+      ],
+      "rubric": [
+        "Distinguished agreement from trust",
+        "Focused on the 15% / high-stakes",
+        "Calibrated confidence + explainability",
+        "Defined a measurable trust metric",
+        "Real launch gate + compliance answer"
+      ]
+    },
+    {
+      "id": "flipkart-bigbasket",
+      "title": "BigBasket detractor NPS",
+      "question": "You're a PM at BigBasket. How would you improve the NPS of detractors who gave a bad rating for partly-delivered items — assuming the fulfilment process is already optimized?",
+      "category": "design",
+      "stages": [
+        {
+          "question": "The process is already optimized — so where's the NPS lever? Frame it.",
+          "considerations": [
+            "Reframe: you can't fix the partial-delivery event, so target expectation-setting + service recovery.",
+            "Segment detractors: which items, order values, frequencies drive the worst scores?",
+            "Name the JTBD: the customer wants predictability and to feel made-whole."
+          ],
+          "pushback": "Leadership says 'we already refund the missing item — what more do they want?'"
+        },
+        {
+          "question": "Give me 2–3 solutions and prioritize.",
+          "considerations": [
+            "Proactive real-time notice + choice (substitute / refund / redeliver) before it's a surprise.",
+            "Instant, generous recovery (auto-credit + apology) on partial orders.",
+            "Let customers pre-set substitution preferences to avoid the miss entirely."
+          ],
+          "pushback": "Instant credits cost money on every partial order. How do you justify it?"
+        },
+        {
+          "question": "What metric proves it worked, and what's the guardrail?",
+          "considerations": [
+            "Primary: detractor recovery rate / repeat-purchase of affected cohort.",
+            "Guardrail: credit cost per order, abuse rate on the recovery offer.",
+            "Measure via targeted A/B on the detractor cohort."
+          ],
+          "pushback": "Some users will game the auto-credit. How do you protect against abuse?"
+        }
+      ],
+      "rubric": [
+        "Reframed given the constraint",
+        "Segmented detractors",
+        "Prioritized with cost awareness",
+        "Recovery-focused metric",
+        "Handled abuse/cost pushback"
+      ]
+    },
+    {
+      "id": "cheese-app",
+      "title": "The cheese-buying app",
+      "question": "Design an app to help people choose which cheese to buy at a grocery store. (Pure product design — zero relation to your background, on purpose.)",
+      "category": "design",
+      "stages": [
+        {
+          "question": "Clarify and pick your user. Who's confused at the cheese aisle and why?",
+          "considerations": [
+            "Segment: novice/overwhelmed shopper vs recipe-driven vs dietary-restricted vs gifting.",
+            "Pick one (e.g., the overwhelmed novice) and their JTBD: 'choose confidently in 30 seconds'.",
+            "Clarify context: in-store, time-pressured, phone in hand."
+          ],
+          "pushback": "Why the novice and not the foodie who'd actually pay for this?"
+        },
+        {
+          "question": "What's the core experience? Walk the key flow.",
+          "considerations": [
+            "Input by use-case ('for a burger', 'for a cheese board') or scan the shelf.",
+            "Output: a ranked shortlist with why, price, and pairing.",
+            "Reduce to the fewest taps — they're standing in an aisle."
+          ],
+          "pushback": "Scanning shelves reliably is hard. What's your v1 if the scan doesn't work?"
+        },
+        {
+          "question": "Success metric + how you'd know people actually use it in-store.",
+          "considerations": [
+            "North Star: successful in-store decisions (add-to-cart / purchase follow-through).",
+            "Guardrail: time-to-decision, repeat usage.",
+            "MVP: skip the fancy CV; start with a guided-question flow."
+          ],
+          "pushback": "How do you keep this from being a one-time-use novelty?"
+        }
+      ],
+      "rubric": [
+        "Picked a specific user",
+        "Designed for the real in-store context",
+        "Ruthless MVP scoping",
+        "Completion-based metric",
+        "Addressed retention"
+      ]
+    },
+    {
+      "id": "rca-upi",
+      "title": "UPI app engagement dropped 40%",
+      "question": "User engagement dropped 40% after a UPI app update. Why, and what do you do?",
+      "category": "problem",
+      "stages": [
+        {
+          "question": "What do you clarify before investigating?",
+          "considerations": [
+            "Define 'engagement': DAU? txns/user? session length? Which one dropped 40%?",
+            "Timing: exactly at the update, or gradual? Which user segments/OS versions?",
+            "Rule out an instrumentation/analytics break from the release first."
+          ],
+          "pushback": "Analytics confirms tracking is intact and it's a real 40% on transactions-per-user. Continue."
+        },
+        {
+          "question": "Structure the causes — MECE.",
+          "considerations": [
+            "Internal: a broken/slow flow in the update, new permission prompt, added step, crash on some OS.",
+            "External: a UPI outage, NPCI change, competitor promo, seasonality.",
+            "Segment by OS/app-version/region to localize."
+          ],
+          "pushback": "It's isolated to Android users on the newest app version. What's your leading hypothesis?"
+        },
+        {
+          "question": "Name the likely cause and your immediate action.",
+          "considerations": [
+            "Likely: a regression in the payment flow for that Android build (crash / added friction).",
+            "Action: hotfix or roll back that build; add a canary + crash-rate alert.",
+            "Verify recovery on the affected cohort before closing."
+          ],
+          "pushback": "Rollback takes 24h to propagate. What do you do in the meantime?"
+        }
+      ],
+      "rubric": [
+        "Clarified metric + ruled out artifact",
+        "MECE internal/external",
+        "Localized by segment",
+        "Named cause AND action",
+        "Handled the interim-mitigation pushback"
+      ]
+    },
+    {
+      "id": "estimate-upi",
+      "title": "Estimate India's daily UPI volume",
+      "question": "Estimate the number of UPI transactions in India per day. Think out loud and structure it.",
+      "category": "estimation",
+      "stages": [
+        {
+          "question": "State your approach and top-line assumptions.",
+          "considerations": [
+            "Choose bottom-up: UPI users × transactions per user per day.",
+            "Anchor: ~350–400M UPI users in India.",
+            "Assume avg ~2–3 UPI txns/user/day across the active base (many small P2M payments)."
+          ],
+          "pushback": "Is 'active users' the same as 'registered users'? Adjust."
+        },
+        {
+          "question": "Do the math out loud.",
+          "considerations": [
+            "~350M active × ~2.5 txns/day ≈ ~875M/day → round to ~0.8–1B/day.",
+            "Layer: heavy users (merchants, gig workers) pull the average up.",
+            "Land on a range, not a false-precise number."
+          ],
+          "pushback": "Give me a single number you'd defend, and why."
+        },
+        {
+          "question": "Sanity-check against something you know.",
+          "considerations": [
+            "Cross-check vs monthly: ~0.9B/day ≈ ~27B/month — in the right order of magnitude for India UPI.",
+            "Call out the biggest source of error (active-user % and txns/user).",
+            "State confidence: right within ~2×, which is what estimation wants."
+          ],
+          "pushback": "If I told you the real number is ~2× yours, where's your estimate most likely wrong?"
+        }
+      ],
+      "rubric": [
+        "Clear top-down/bottom-up choice",
+        "Reasonable, stated assumptions",
+        "Clean rounded arithmetic",
+        "Sanity-checked vs an anchor",
+        "Named the biggest error source"
+      ]
+    },
+    {
+      "id": "payments-api",
+      "title": "Design a payments API",
+      "question": "Design a payments API. What makes it good to build on? (PM lens — the why and what, not the code.)",
+      "category": "technical",
+      "stages": [
+        {
+          "question": "Requirements first — functional and non-functional.",
+          "considerations": [
+            "Functional: create charge, auth/capture, refund, idempotent retries, webhooks, dispute handling.",
+            "Non-functional: reliability (payments can't drop), low latency, PCI security, clear errors.",
+            "Name the developer as the primary 'user' — DX is the product."
+          ],
+          "pushback": "Which single non-functional requirement would you never trade off, and why?"
+        },
+        {
+          "question": "What makes this API genuinely good to build on?",
+          "considerations": [
+            "Idempotency keys so retries never double-charge.",
+            "Predictable, well-documented errors; sensible defaults; hard-to-misuse design.",
+            "Webhooks for async state; sandbox + test cards; versioning that doesn't break integrators."
+          ],
+          "pushback": "A partner integrates it wrong and double-charges customers. Whose fault is it, and what do you change?"
+        },
+        {
+          "question": "How do you measure the API's success and health?",
+          "considerations": [
+            "Health: success/auth rate, p99 latency, error rate by type.",
+            "Adoption: time-to-first-successful-charge, integration completion rate.",
+            "Trust: incidents, double-charge rate, support tickets per 1k integrations."
+          ],
+          "pushback": "Tie one of these metrics back to a real product decision you'd make from it."
+        }
+      ],
+      "rubric": [
+        "Split functional vs non-functional",
+        "Made DX the product",
+        "Idempotency/error-handling depth",
+        "Health + adoption metrics",
+        "Connected metric → decision"
+      ]
+    }
+  ]
+}
