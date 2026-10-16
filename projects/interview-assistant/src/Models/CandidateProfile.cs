@@ -10,6 +10,7 @@ public sealed class CandidateProfile
     public string TargetJobDescription { get; set; } = "";
     public string Language { get; set; } = "English";
     public string SpeakingStyle { get; set; } = "Natural first-person language, short sentences, concrete ownership and outcomes.";
+    public string CaseExampleProduct { get; set; } = "";
     public List<ExperienceStory> Stories { get; set; } = [];
     public List<ProfileFact> Facts { get; set; } = [];
     public List<string> Cautions { get; set; } = [];

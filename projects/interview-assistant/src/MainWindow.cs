@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Channels;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -15,22 +16,30 @@ namespace InterviewAssistant;
 
 public sealed class MainWindow : Window
 {
-    static readonly SolidColorBrush Ink=Brush("#F2F4F5"), Muted=Brush("#D4DEEB"), Accent=Brush("#A8ECD0"), Panel=Brush("#40172131"), BackgroundInk=Brush("#0E1520");
+    static readonly SolidColorBrush Ink=Brush("#F2F4F5"), Muted=Brush("#D4DEEB"), Accent=Brush("#A8ECD0"), BackgroundInk=Brush("#0E1520");
     readonly LocalSettings settings;
     CandidateProfile? profile;
     string? key;
     readonly TextBlock profileLabel=Label("Load your career profile",22,Ink), profileSub=Label("Your CV and stories stay local until you request an AI answer.",12,Muted);
     readonly TextBlock status=Label("Ready to prepare",13,Accent), captureStatus=Label("Capture protection pending",11,Muted), credentialStatus=Label("API setup pending",12,Muted), modeLabel=Label("YOUR NEXT ANSWER",11,Accent);
     readonly TextBox question=Input("",15), transcript=Input("",13), answer=Input("",18), sourceDetails=Input("",11);
+    readonly TextBox favouriteProduct=Input("",13);
     readonly ComboBox devices=new(){MinHeight=32,DisplayMemberPath="Name"};
     readonly ComboBox audioSources=new(){MinHeight=32};
     readonly ComboBox lengths=new(){MinHeight=30};
     readonly ListBox storyList=new(){Background=Brush("#111B29"),Foreground=Ink,BorderThickness=new Thickness(0),MaxHeight=182,DisplayMemberPath="Title"};
     readonly CheckBox autoAnswer=new(){Content="Auto-answer",Foreground=Ink,VerticalAlignment=VerticalAlignment.Center,Margin=new Thickness(8,0,0,0),ToolTip="Automatically answer completed interviewer questions after a short pause. Turn off for manual answers."};
     readonly ProgressBar audioMeter=new(){Minimum=0,Maximum=1,Height=4,Background=Brush("#26354A"),Foreground=Accent,BorderThickness=new Thickness(0)};
-    readonly Button listen=Button("Start listening"), generate=Button("Generate answer",true), cancel=Button("Stop answer"), compactButton=Button("Floating view"), rehearsal=Button("Rehearse selected story");
-    readonly Grid shell=new(){Margin=new Thickness(24)}, workspace=new();
-    readonly StackPanel sidebar=new(), transcriptPanel=new();
+    readonly Button listen=Button("Start listening"), generate=Button("Generate answer",true), cancel=Button("Stop answer"), rehearsal=Button("Rehearse selected story");
+    readonly Grid shell=new();
+    readonly StackPanel transcriptPanel=new();
+    readonly Expander options=new(){Header="Options",Foreground=Muted};
+    readonly AnswerDocument document=new();
+    readonly TextBlock pageLabel=Label("",11,Muted);
+    readonly Button previous=Button("‹"),next=Button("Next ›");
+    int pageIndex;
+    bool generating, updatingQuestion;
+    string currentOpening="",rawAnswer="", suppliedSources="";
     readonly List<ConversationTurn> history=[];
     readonly StringBuilder committedTranscript=new();
     WindowIntegration? integration;
@@ -40,7 +49,7 @@ public sealed class MainWindow : Window
     Channel<byte[]>? audioQueue;
     Task? senderTask;
     EndOfSpeechDetector detector=new();
-    bool listening,changingListening,compact,closing;
+    bool listening,changingListening,closing;
     int answerGeneration, listeningGeneration;
     string lastQuestion="", partial="",pendingQuestion="";
     readonly bool smokeMode;
@@ -51,14 +60,17 @@ public sealed class MainWindow : Window
         this.smokeMode=smokeMode;
         this.answerClientFactory=answerClientFactory ?? (()=>new AIClient());
         settings=smokeMode ? new LocalSettings() : LocalSettings.Load();
-        Title="Interview Assistant · JobSearchOS"; Width=1080;Height=800;MinWidth=560;MinHeight=470;
+        Title="Interview Assistant · JobSearchOS"; Width=settings.OverlayWidth;Height=settings.OverlayHeight;MinWidth=340;MinHeight=300;
         Background=Tint(settings.OverlayTint);Foreground=Ink;FontFamily=new FontFamily("Segoe UI");WindowStartupLocation=WindowStartupLocation.CenterScreen;
-        WindowStyle=WindowStyle.None;AllowsTransparency=true;ResizeMode=ResizeMode.CanResizeWithGrip;Topmost=true;
+        WindowStyle=WindowStyle.None;AllowsTransparency=true;ResizeMode=ResizeMode.CanResize;Topmost=true;
         BuildLayout();
         cancel.IsEnabled=false;
         SourceInitialized+=(_,_)=>InitializeWindowIntegration();
         Closed+=(_,_)=>{closing=true;answerCts?.Cancel();autoCts?.Cancel();listeningCts?.Cancel();capture?.Dispose();integration?.Dispose();if(transcriber!=null)_=transcriber.DisposeAsync();};
-        PreviewKeyDown+=(_,e)=>{if(e.Key==Key.Escape){answerCts?.Cancel();SetStatus("Answer stopped");}};
+        Loaded+=(_,_)=>CenterNearCamera();
+        SizeChanged+=(_,_)=>{settings.OverlayWidth=Width;settings.OverlayHeight=Math.Max(300,Height-(options.IsExpanded?224:0));};
+        Closed+=(_,_)=>SaveSettings();
+        PreviewKeyDown+=(_,e)=>{if(e.Key==Key.Escape){StopAnswer();}if(Keyboard.Modifiers==ModifierKeys.Alt&&e.Key==Key.Right){MovePage(1);e.Handled=true;}if(Keyboard.Modifiers==ModifierKeys.Alt&&e.Key==Key.Left){MovePage(-1);e.Handled=true;}};
         RefreshDevices();
         var selectedProfile=profilePath ?? Environment.GetEnvironmentVariable("INTERVIEW_ASSISTANT_PROFILE");
         if(string.IsNullOrWhiteSpace(selectedProfile))selectedProfile=settings.ProfilePath;
@@ -79,59 +91,111 @@ public sealed class MainWindow : Window
         audioSources.ItemsSource=new[]{"Zoom desktop only","Output device (manual)"};audioSources.SelectedIndex=settings.AudioSource=="Output"?1:0;
         audioSources.SelectionChanged+=(_,_)=>{settings.AudioSource=audioSources.SelectedIndex==1?"Output":"Zoom";devices.IsEnabled=!listening&&settings.AudioSource=="Output";SaveSettings();};
         devices.IsEnabled=settings.AudioSource=="Output";
-        lengths.ItemsSource=new[]{"45–60 seconds","20–30 seconds","90 seconds"};lengths.SelectedIndex=0;
-        answer.Text="A clear opening.\nA story you can stand behind.\nRoom to think.\n\nLoad your profile, select a story to rehearse, or connect the API and ask a question.";
+        lengths.ItemsSource=new[]{"Detailed","Balanced","Brief"};lengths.SelectedIndex=0;
+        question.TextChanged+=(_,_)=>{if(!updatingQuestion)autoCts?.Cancel();};
+        answer.Text="Start listening with ▶.\n\nThe question and your next spoken section appear here. Use Next or Ctrl+Alt+Right to continue.";
     }
 
     void BuildLayout()
     {
-        Content=shell;shell.RowDefinitions.Add(new(){Height=GridLength.Auto});shell.RowDefinitions.Add(new(){Height=GridLength.Auto});shell.RowDefinitions.Add(new());shell.RowDefinitions.Add(new(){Height=GridLength.Auto});
-        var header=new Grid{Margin=new Thickness(0,0,0,20)};header.ColumnDefinitions.Add(new());header.ColumnDefinitions.Add(new(){Width=GridLength.Auto});
+        var outer=new Grid();Content=outer;shell.Margin=new Thickness(15,10,15,12);outer.Children.Add(shell);
+        for(var i=0;i<6;i++)shell.RowDefinitions.Add(new(){Height=i==3?new GridLength(1,GridUnitType.Star):GridLength.Auto});
+        var header=new Grid{Background=Brushes.Transparent,ToolTip="Drag the top bar to move"};header.ColumnDefinitions.Add(new());header.ColumnDefinitions.Add(new(){Width=GridLength.Auto});
         header.MouseLeftButtonDown+=(_,e)=>{if(e.OriginalSource is TextBlock || e.OriginalSource==header){try{DragMove();}catch(InvalidOperationException){}}};
-        var brand=new StackPanel();brand.Children.Add(Label("JOBSEARCH OS  /  INTERVIEW ASSISTANT",10,Muted));brand.Children.Add(Label("Stay in the conversation.",26,Ink));header.Children.Add(brand);
-        var windowActions=new StackPanel{Orientation=Orientation.Horizontal,VerticalAlignment=VerticalAlignment.Top};
-        compactButton.Click+=(_,_)=>ToggleCompact();windowActions.Children.Add(compactButton);
-        var minimize=Button("—");minimize.ToolTip="Minimize";minimize.Click+=(_,_)=>WindowState=WindowState.Minimized;windowActions.Children.Add(minimize);
-        var close=Button("×");close.ToolTip="Close and stop listening";close.Click+=(_,_)=>Close();windowActions.Children.Add(close);Grid.SetColumn(windowActions,1);header.Children.Add(windowActions);shell.Children.Add(header);
-        var stateBar=new Grid{Margin=new Thickness(0,0,0,18)};stateBar.ColumnDefinitions.Add(new());stateBar.ColumnDefinitions.Add(new(){Width=GridLength.Auto});stateBar.Children.Add(status);Grid.SetColumn(captureStatus,1);stateBar.Children.Add(captureStatus);Grid.SetRow(stateBar,1);shell.Children.Add(stateBar);
-        workspace.ColumnDefinitions.Add(new(){Width=new GridLength(270)});workspace.ColumnDefinitions.Add(new(){Width=new GridLength(20)});workspace.ColumnDefinitions.Add(new());Grid.SetRow(workspace,2);shell.Children.Add(workspace);
-        var sideScroll=new ScrollViewer{Content=sidebar,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};workspace.Children.Add(sideScroll);
-        sidebar.Children.Add(profileLabel);sidebar.Children.Add(profileSub);
-        var profileButton=Button("Load profile JSON");profileButton.Margin=new Thickness(0,14,0,8);profileButton.Click+=(_,_)=>ChooseProfile();sidebar.Children.Add(profileButton);
-        sidebar.Children.Add(Section("SAVED STORIES"));storyList.SelectionChanged+=(_,_)=>ShowStorySource();
-        storyList.SetValue(ScrollViewer.HorizontalScrollBarVisibilityProperty,ScrollBarVisibility.Disabled);
-        storyList.DisplayMemberPath="";
-        var storyTemplate=new DataTemplate();var storyText=new FrameworkElementFactory(typeof(TextBlock));
-        storyText.SetBinding(TextBlock.TextProperty,new System.Windows.Data.Binding("Title"));storyText.SetValue(TextBlock.TextWrappingProperty,TextWrapping.Wrap);storyText.SetValue(FrameworkElement.MarginProperty,new Thickness(4));storyTemplate.VisualTree=storyText;storyList.ItemTemplate=storyTemplate;
-        sidebar.Children.Add(storyList);
-        rehearsal.Margin=new Thickness(0,8,0,12);rehearsal.Click+=(_,_)=>ShowRehearsal();sidebar.Children.Add(rehearsal);
-        sidebar.Children.Add(Section("MEETING AUDIO"));sidebar.Children.Add(audioSources);sidebar.Children.Add(devices);sidebar.Children.Add(audioMeter);
-        var refresh=Button("Refresh audio devices");refresh.Margin=new Thickness(0,7,0,5);refresh.Click+=(_,_)=>RefreshDevices();sidebar.Children.Add(refresh);
-        sidebar.Children.Add(Label("Zoom desktop only captures Zoom's playback, including the interviewer. Use headphones. Output-device mode includes other apps.",11,Muted));
-        listen.Click+=async(_,_)=>await ToggleListeningAsync();
-        sidebar.Children.Add(Label("Listening sends selected audio to OpenAI. No raw audio or transcript is saved by default.",11,Muted));
-        sidebar.Children.Add(Section("CONNECTION"));sidebar.Children.Add(credentialStatus);
-        var credentialButton=Button("Select local API env file");credentialButton.ToolTip="Choose an existing local file containing OPENAI_API_KEY. Key values are never displayed or copied to settings.";credentialButton.Click+=(_,_)=>ChooseCredentials();sidebar.Children.Add(credentialButton);
-        sidebar.Children.Add(Section("SOURCE NOTES"));sourceDetails.IsReadOnly=true;sourceDetails.MinHeight=105;sourceDetails.MaxHeight=150;sourceDetails.FontSize=11;sidebar.Children.Add(sourceDetails);
-        var main=new Grid();main.RowDefinitions.Add(new(){Height=GridLength.Auto});main.RowDefinitions.Add(new(){Height=GridLength.Auto});main.RowDefinitions.Add(new());Grid.SetColumn(main,2);workspace.Children.Add(main);
-        transcriptPanel.Children.Add(Section("LIVE CONVERSATION"));transcript.IsReadOnly=true;transcript.Height=86;transcript.Text="Transcription appears here after you start listening.";transcriptPanel.Children.Add(transcript);main.Children.Add(transcriptPanel);
-        var askPanel=new StackPanel{Margin=new Thickness(0,18,0,16)};
-        var questionHeader=new Grid();questionHeader.ColumnDefinitions.Add(new());questionHeader.ColumnDefinitions.Add(new(){Width=GridLength.Auto});questionHeader.Children.Add(Label("Question or follow-up · transcribed automatically",12,Muted));Grid.SetColumn(autoAnswer,1);questionHeader.Children.Add(autoAnswer);askPanel.Children.Add(questionHeader);
-        question.Height=62;question.AcceptsReturn=true;question.ToolTip="Spoken questions appear automatically while listening. Type or edit a question for manual generation. Ctrl+Alt+Enter generates an answer.";askPanel.Children.Add(question);
-        var controls=new WrapPanel{Margin=new Thickness(0,8,0,0)};controls.Children.Add(listen);generate.Click+=async(_,_)=>await AnswerAsync();controls.Children.Add(generate);cancel.Click+=(_,_)=>{answerCts?.Cancel();SetStatus("Answer stopped");};controls.Children.Add(cancel);controls.Children.Add(lengths);
-        var note=Button("Add as what I said");note.ToolTip="Adds the text above as your actual spoken response, so follow-ups can use it.";note.Click+=(_,_)=>{if(!string.IsNullOrWhiteSpace(question.Text)){AddHistory("candidate",question.Text);SetStatus("Your response was added to this session");question.Clear();}};controls.Children.Add(note);askPanel.Children.Add(controls);Grid.SetRow(askPanel,1);main.Children.Add(askPanel);
-        var answerCard=new Border{Background=Panel,CornerRadius=new CornerRadius(12),Padding=new Thickness(20)};
-        var answerGrid=new Grid();answerGrid.RowDefinitions.Add(new(){Height=GridLength.Auto});answerGrid.RowDefinitions.Add(new());answerGrid.Children.Add(modeLabel);
-        answer.IsReadOnly=true;answer.Background=Brushes.Transparent;answer.BorderThickness=new Thickness(0);answer.Padding=new Thickness(0,12,0,0);answer.FontFamily=new FontFamily("Segoe UI");Grid.SetRow(answer,1);answerGrid.Children.Add(answer);answerCard.Child=answerGrid;Grid.SetRow(answerCard,2);main.Children.Add(answerCard);
-        var footer=new Grid{Margin=new Thickness(0,16,0,0)};footer.ColumnDefinitions.Add(new());footer.ColumnDefinitions.Add(new(){Width=GridLength.Auto});
-        footer.Children.Add(Label("Ctrl+Alt+Space  listen    ·    Ctrl+Alt+Enter  answer    ·    Ctrl+Alt+H  show / hide",10,Muted));
-        var footerControls=new StackPanel{Orientation=Orientation.Horizontal};
-        footerControls.Children.Add(Label("Tint",10,Muted));
-        var tint=new Slider{Minimum=.18,Maximum=.85,Value=settings.OverlayTint,Width=80,Margin=new Thickness(5,0,12,0),VerticalAlignment=VerticalAlignment.Center,ToolTip="Adjust the translucent background. Text remains solid."};
-        tint.ValueChanged+=(_,_)=>{settings.OverlayTint=tint.Value;Background=Tint(tint.Value);};tint.PreviewMouseLeftButtonUp+=(_,_)=>SaveSettings();tint.LostKeyboardFocus+=(_,_)=>SaveSettings();footerControls.Children.Add(tint);
-        var clear=Button("Clear session");clear.Click+=async(_,_)=>{await StopListeningAsync();ResetConversation();SetStatus("Session cleared; listening stopped");};footerControls.Children.Add(clear);
-        Grid.SetColumn(footerControls,1);footer.Children.Add(footerControls);Grid.SetRow(footer,3);shell.Children.Add(footer);
+        header.Children.Add(Label("QUESTION",10,Muted));
+        var actions=new StackPanel{Orientation=Orientation.Horizontal};Grid.SetColumn(actions,1);header.Children.Add(actions);
+        listen.Content="▶";listen.ToolTip="Start / pause listening · Ctrl+Alt+Space";listen.Padding=new Thickness(10,2,10,2);listen.MinHeight=24;
+        listen.Click+=async(_,_)=>await ToggleListeningAsync();actions.Children.Add(listen);
+        generate.Content="↻";generate.ToolTip="Answer typed / current question · Ctrl+Alt+Enter";generate.Padding=new Thickness(10,2,10,2);generate.MinHeight=24;
+        generate.Click+=async(_,_)=>await AnswerAsync();actions.Children.Add(generate);
+        var settingsButton=Button("•••");settingsButton.ToolTip="Expand / collapse options";settingsButton.Padding=new Thickness(9,2,9,2);settingsButton.MinHeight=24;settingsButton.Click+=(_,_)=>options.IsExpanded=!options.IsExpanded;actions.Children.Add(settingsButton);
+        var close=Button("×");close.Padding=new Thickness(9,2,9,2);close.MinHeight=24;close.Margin=new Thickness(0);close.ToolTip="Close and stop everything";close.Click+=(_,_)=>Close();actions.Children.Add(close);shell.Children.Add(header);
+        question.Height=52;question.FontSize=14;question.Padding=new Thickness(0,5,0,4);question.Background=Brushes.Transparent;question.BorderThickness=new Thickness(0);question.ToolTip="Live question. Edit or type, then ↻ / Ctrl+Alt+Enter for a manual answer.";
+        Grid.SetRow(question,1);shell.Children.Add(question);
+        var answerHeader=new Grid{Margin=new Thickness(0,4,0,4)};answerHeader.ColumnDefinitions.Add(new());answerHeader.ColumnDefinitions.Add(new(){Width=GridLength.Auto});
+        modeLabel.Text="ANSWER";answerHeader.Children.Add(modeLabel);Grid.SetColumn(pageLabel,1);answerHeader.Children.Add(pageLabel);Grid.SetRow(answerHeader,2);shell.Children.Add(answerHeader);
+        answer.IsReadOnly=true;answer.FontSize=settings.ReadingFontSize;answer.Background=Brushes.Transparent;answer.BorderThickness=new Thickness(0);answer.Padding=new Thickness(0,3,0,4);TextBlock.SetLineHeight(answer,settings.ReadingFontSize*1.35);answer.VerticalScrollBarVisibility=ScrollBarVisibility.Auto;
+        Grid.SetRow(answer,3);shell.Children.Add(answer);
+        answer.SizeChanged+=(_,_)=>ReflowReadingArea();
+        var navigation=new Grid{Margin=new Thickness(0,4,0,4)};navigation.ColumnDefinitions.Add(new());navigation.ColumnDefinitions.Add(new(){Width=GridLength.Auto});
+        status.FontSize=10;status.TextWrapping=TextWrapping.NoWrap;status.TextTrimming=TextTrimming.CharacterEllipsis;status.VerticalAlignment=VerticalAlignment.Center;navigation.Children.Add(status);
+        var paging=new StackPanel{Orientation=Orientation.Horizontal};previous.Padding=new Thickness(9,3,9,3);previous.MinHeight=25;previous.ToolTip="Previous section · Ctrl+Alt+Left";previous.Click+=(_,_)=>MovePage(-1);paging.Children.Add(previous);
+        next.Padding=new Thickness(9,3,9,3);next.MinHeight=25;next.Margin=new Thickness(0);next.ToolTip="Next section · Ctrl+Alt+Right";next.Click+=(_,_)=>MovePage(1);paging.Children.Add(next);Grid.SetColumn(paging,1);navigation.Children.Add(paging);Grid.SetRow(navigation,4);shell.Children.Add(navigation);
+        previous.IsEnabled=next.IsEnabled=false;
+
+        var detail=new StackPanel{Margin=new Thickness(0,8,0,4)};
+        var scroll=new ScrollViewer{Content=detail,Height=196,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};options.Content=scroll;
+        options.Expanded+=(_,_)=>{Height=Math.Min(SystemParameters.WorkArea.Height-30,Height+224);};
+        options.Collapsed+=(_,_)=>{Height=Math.Max(MinHeight,Height-224);};Grid.SetRow(options,5);shell.Children.Add(options);
+        var topOptions=new WrapPanel();autoAnswer.Margin=new Thickness(0,4,10,4);topOptions.Children.Add(autoAnswer);topOptions.Children.Add(lengths);
+        cancel.Content="Stop answer";cancel.Click+=(_,_)=>StopAnswer();topOptions.Children.Add(cancel);detail.Children.Add(topOptions);
+        detail.Children.Add(Section("READING POSITION"));var reading=new WrapPanel();
+        var center=Button("Center near camera");center.Click+=(_,_)=>CenterNearCamera();reading.Children.Add(center);
+        reading.Children.Add(Label("Text",11,Muted));var font=new Slider{Minimum=15,Maximum=28,Value=settings.ReadingFontSize,Width=80,Margin=new Thickness(5,3,10,3)};
+        font.ValueChanged+=(_,_)=>{settings.ReadingFontSize=font.Value;answer.FontSize=font.Value;TextBlock.SetLineHeight(answer,font.Value*1.35);ReflowReadingArea();};font.PreviewMouseLeftButtonUp+=(_,_)=>SaveSettings();reading.Children.Add(font);
+        reading.Children.Add(Label("Tint",11,Muted));var tint=new Slider{Minimum=.18,Maximum=.85,Value=settings.OverlayTint,Width=80,Margin=new Thickness(5,3,0,3)};
+        tint.ValueChanged+=(_,_)=>{settings.OverlayTint=tint.Value;Background=Tint(tint.Value);};tint.PreviewMouseLeftButtonUp+=(_,_)=>SaveSettings();reading.Children.Add(tint);detail.Children.Add(reading);
+        detail.Children.Add(Label("Drag the top bar to move. Drag any edge or the bottom-right corner to resize. Ctrl+Alt+Right / Left changes spoken sections. The current section stays in place as later ones arrive.",11,Muted));
+        detail.Children.Add(Section("CASE EXAMPLE"));var favourite=favouriteProduct;favourite.Text=settings.FavouriteProduct;favourite.Height=34;favourite.AcceptsReturn=false;favourite.ToolTip="Optional product example for favourite-product cases; named products in questions take precedence.";
+        favourite.TextChanged+=(_,_)=>settings.FavouriteProduct=favourite.Text.Length>80?favourite.Text[..80]:favourite.Text;favourite.LostKeyboardFocus+=(_,_)=>SaveSettings();detail.Children.Add(favourite);
+        detail.Children.Add(Label("Example product only. Generated cases use explicit assumptions, not claims that you used or built that product.",11,Muted));
+        detail.Children.Add(Section("MEETING AUDIO"));detail.Children.Add(audioSources);detail.Children.Add(devices);detail.Children.Add(audioMeter);
+        var refresh=Button("Refresh devices");refresh.Margin=new Thickness(0,6,0,4);refresh.Click+=(_,_)=>RefreshDevices();detail.Children.Add(refresh);
+        detail.Children.Add(Label("Zoom only captures Zoom playback. Use headphones. Output-device mode includes other apps. Listening sends audio to OpenAI; raw audio and transcripts are not saved.",11,Muted));
+        detail.Children.Add(Label("Pause after speech (milliseconds)",11,Muted));var pause=new Slider{Minimum=400,Maximum=1200,Value=settings.EndpointSilenceMs,TickFrequency=50,IsSnapToTickEnabled=true};pause.ValueChanged+=(_,_)=>settings.EndpointSilenceMs=(int)pause.Value;pause.PreviewMouseLeftButtonUp+=(_,_)=>SaveSettings();detail.Children.Add(pause);
+        detail.Children.Add(Label("Use a longer pause if an interviewer often pauses mid-question. Changes apply next time listening starts.",11,Muted));
+        detail.Children.Add(Section("PROFILE & CONNECTION"));profileLabel.FontSize=16;detail.Children.Add(profileLabel);detail.Children.Add(profileSub);detail.Children.Add(credentialStatus);
+        var files=new WrapPanel();var load=Button("Load profile");load.Click+=(_,_)=>ChooseProfile();files.Children.Add(load);var credentialButton=Button("API env file");credentialButton.Click+=(_,_)=>ChooseCredentials();files.Children.Add(credentialButton);detail.Children.Add(files);
+        var models=new Expander{Header="Models",Foreground=Muted,Margin=new Thickness(0,8,0,0)};var modelFields=new StackPanel();
+        modelFields.Children.Add(Label("Fast / experience answers",11,Muted));var fastModel=Input(settings.AnswerModel,12);fastModel.Height=32;fastModel.TextChanged+=(_,_)=>settings.AnswerModel=fastModel.Text.Trim();fastModel.LostKeyboardFocus+=(_,_)=>SaveSettings();modelFields.Children.Add(fastModel);
+        modelFields.Children.Add(Label("Case reasoning",11,Muted));var caseModel=Input(settings.CaseModel,12);caseModel.Height=32;caseModel.TextChanged+=(_,_)=>settings.CaseModel=caseModel.Text.Trim();caseModel.LostKeyboardFocus+=(_,_)=>SaveSettings();modelFields.Children.Add(caseModel);models.Content=modelFields;detail.Children.Add(models);
+        var stories=new Expander{Header="Saved stories / local rehearsal",Foreground=Muted,Margin=new Thickness(0,8,0,0)};var storyPanel=new StackPanel();storyList.SelectionChanged+=(_,_)=>ShowStorySource();storyPanel.Children.Add(storyList);rehearsal.Click+=(_,_)=>ShowRehearsal();storyPanel.Children.Add(rehearsal);stories.Content=storyPanel;detail.Children.Add(stories);
+        transcriptPanel.Children.Add(Section("LIVE TRANSCRIPT"));transcript.IsReadOnly=true;transcript.Height=100;transcriptPanel.Children.Add(transcript);detail.Children.Add(transcriptPanel);
+        detail.Children.Add(Section("SOURCES / ASSUMPTIONS"));sourceDetails.IsReadOnly=true;sourceDetails.Height=120;detail.Children.Add(sourceDetails);detail.Children.Add(captureStatus);
+        var session=new WrapPanel{Margin=new Thickness(0,8,0,4)};var spoken=Button("Add Q text as what I said");spoken.Click+=(_,_)=>{if(!string.IsNullOrWhiteSpace(question.Text)){AddHistory("candidate",question.Text);SetStatus("Your spoken response added");question.Clear();}};session.Children.Add(spoken);
+        var clear=Button("Clear session");clear.Click+=async(_,_)=>{await StopListeningAsync();ResetConversation();SetStatus("Session cleared · paused");};session.Children.Add(clear);detail.Children.Add(session);
+        detail.Children.Add(Label("Ctrl+Alt+Space: listen/pause · Ctrl+Alt+Enter: answer · Ctrl+Alt+H: hide/show · Ctrl+Alt+S: stop answer. Hiding does not stop listening.",11,Muted));
+        AddResizeHandles(outer);
     }
+
+    void AddResizeHandles(Grid outer)
+    {
+        foreach(var edge in new[]{"L","R","T","B","LT","RT","LB","RB"})
+        {
+            var corner=edge.Length==2;var thumb=new Thumb{Width=edge.Contains('L')||edge.Contains('R')?(corner?17:7):double.NaN,Height=edge.Contains('T')||edge.Contains('B')?(corner?17:7):double.NaN,
+                HorizontalAlignment=edge.Contains('L')?HorizontalAlignment.Left:edge.Contains('R')?HorizontalAlignment.Right:HorizontalAlignment.Stretch,
+                VerticalAlignment=edge.Contains('T')?VerticalAlignment.Top:edge.Contains('B')?VerticalAlignment.Bottom:VerticalAlignment.Stretch,
+                Cursor=corner?(edge is "LT" or "RB"?Cursors.SizeNWSE:Cursors.SizeNESW):(edge is "L" or "R"?Cursors.SizeWE:Cursors.SizeNS),ToolTip="Drag to resize"};
+            if(!corner)thumb.Margin=edge is "L" or "R"?new Thickness(0,17,0,17):new Thickness(17,0,17,0);
+            var template=new ControlTemplate(typeof(Thumb));var hit=new FrameworkElementFactory(typeof(Border));hit.SetValue(Border.BackgroundProperty,Brushes.Transparent);
+            if(edge=="RB"){var mark=new FrameworkElementFactory(typeof(TextBlock));mark.SetValue(TextBlock.TextProperty,"◢");mark.SetValue(TextBlock.ForegroundProperty,Muted);mark.SetValue(TextBlock.FontSizeProperty,12.0);mark.SetValue(TextBlock.HorizontalAlignmentProperty,HorizontalAlignment.Right);mark.SetValue(TextBlock.VerticalAlignmentProperty,VerticalAlignment.Bottom);hit.AppendChild(mark);}
+            template.VisualTree=hit;thumb.Template=template;thumb.DragDelta+=(_,e)=>ResizeFromEdge(edge,e.HorizontalChange,e.VerticalChange);thumb.DragCompleted+=(_,_)=>SaveSettings();outer.Children.Add(thumb);
+        }
+    }
+    public void ResizeFromEdge(string edge,double dx,double dy)
+    {
+        if(edge.Contains('R'))Width=Math.Clamp(Width+dx,MinWidth,SystemParameters.VirtualScreenWidth);
+        if(edge.Contains('B'))Height=Math.Clamp(Height+dy,MinHeight,SystemParameters.VirtualScreenHeight);
+        if(edge.Contains('L')){var width=Math.Clamp(Width-dx,MinWidth,SystemParameters.VirtualScreenWidth);Left+=Width-width;Width=width;}
+        if(edge.Contains('T')){var height=Math.Clamp(Height-dy,MinHeight,SystemParameters.VirtualScreenHeight);Top+=Height-height;Height=height;}
+    }
+    void CenterNearCamera(){var area=SystemParameters.WorkArea;Left=area.Left+(area.Width-Width)/2;Top=area.Top+12;}
+    void MovePage(int direction){pageIndex=Math.Clamp(pageIndex+direction,0,Math.Max(0,document.Pages.Count-1));RenderPage();}
+    void ReflowReadingArea()
+    {
+        if(answer.ActualWidth<50||answer.ActualHeight<40)return;
+        var budget=Math.Clamp((int)((answer.ActualHeight-14)/(answer.FontSize*1.4)*(answer.ActualWidth-20)/(answer.FontSize*3.8)),12,45);
+        if(budget==document.WordBudget)return;document.WordBudget=budget;
+        if(rawAnswer.Length>0){document.Update(rawAnswer,currentOpening,!generating);RenderPage();}
+    }
+    void RenderPage()
+    {
+        if(document.Pages.Count==0){answer.Text=generating?"Building the first section…":"";modeLabel.Text="ANSWER";pageLabel.Text="";}
+        else {pageIndex=Math.Min(pageIndex,document.Pages.Count-1);var page=document.Pages[pageIndex];modeLabel.Text=page.Title.ToUpperInvariant();pageLabel.Text=$"{pageIndex+1} / {document.Pages.Count}"+(generating?" +":"");if(answer.Text!=page.Text){answer.Text=page.Text;answer.ScrollToHome();}}
+        previous.IsEnabled=pageIndex>0;next.IsEnabled=pageIndex+1<document.Pages.Count;
+        sourceDetails.Text=suppliedSources+(document.Notes.Length>0?"\n\n"+document.Notes:"");
+    }
+    void StopAnswer(){autoCts?.Cancel();answerCts?.Cancel();generating=false;cancel.IsEnabled=false;RenderPage();SetStatus("Answer stopped");}
 
     void InitializeWindowIntegration()
     {
@@ -140,6 +204,9 @@ public sealed class MainWindow : Window
             if(id==1)await ToggleListeningAsync();
             if(id==2)await AnswerAsync();
             if(id==3){if(IsVisible)Hide();else{Show();Activate();}}
+            if(id==4)MovePage(1);
+            if(id==5)MovePage(-1);
+            if(id==6)StopAnswer();
         });
         var warnings=integration.RegisterShortcuts();
         ApplyProtection();
@@ -187,6 +254,7 @@ public sealed class MainWindow : Window
         {
             var next=ProfileRepository.Load(path);ResetConversation();
             profile=next;settings.ProfilePath=path;SaveSettings();profileLabel.Text=profile.Name;
+            if(string.IsNullOrWhiteSpace(settings.FavouriteProduct)&&!string.IsNullOrWhiteSpace(profile.CaseExampleProduct))favouriteProduct.Text=profile.CaseExampleProduct;
             profileSub.Text=$"{profile.TargetCompany} · {profile.TargetRole}\n{profile.Stories.Count} source-labelled stories";
             storyList.ItemsSource=profile.Stories;storyList.SelectedIndex=0;RefreshCredential();SetStatus("Profile loaded · ready to rehearse");
         }
@@ -203,8 +271,9 @@ public sealed class MainWindow : Window
     {
         if(storyList.SelectedItem is not ExperienceStory story)return;
         answerCts?.Cancel();autoCts?.Cancel();Interlocked.Increment(ref answerGeneration);
-        modeLabel.Text="LOCAL REHEARSAL · SAVED TALKING POINTS";
-        answer.Text=string.IsNullOrWhiteSpace(story.SpokenAnswer)?"This story has source facts but no prepared spoken answer. Connect the API to generate one.":story.SpokenAnswer;
+        generating=false;pageIndex=0;currentOpening="";suppliedSources="Local rehearsal · supplied talking points, not verified career evidence";
+        rawAnswer=string.IsNullOrWhiteSpace(story.SpokenAnswer)?"This story has source facts but no prepared spoken answer. Connect the API to generate one.":story.SpokenAnswer;
+        document.Update(rawAnswer,"",true);RenderPage();
         question.Text="Tell me about "+story.Title.ToLowerInvariant()+".";ShowStorySource();SetStatus("Saved profile text · no AI request made");
     }
 
@@ -232,7 +301,7 @@ public sealed class MainWindow : Window
             transcriber.Failed+=message=>Dispatcher.InvokeAsync(async()=>{if(sessionGeneration==listeningGeneration){await StopListeningAsync();SetStatus(message);}});
             await transcriber.ConnectAsync(token);
             audioQueue=Channel.CreateBounded<byte[]>(new BoundedChannelOptions(100){SingleReader=true,SingleWriter=true,FullMode=BoundedChannelFullMode.Wait});
-            detector.Reset();capture=zoomMode?new ProcessLoopbackCapture():new AudioCaptureService();
+            detector=new EndOfSpeechDetector(silenceMilliseconds:settings.EndpointSilenceMs);capture=zoomMode?new ProcessLoopbackCapture():new AudioCaptureService();
             capture.PcmAvailable+=pcm=>{if(sessionGeneration==listeningGeneration&&audioQueue!=null&&!audioQueue.Writer.TryWrite(pcm))Dispatcher.InvokeAsync(async()=>{if(sessionGeneration==listeningGeneration){await StopListeningAsync();SetStatus("Audio upload fell behind. Listening stopped; reconnect and try again.");}});};
             capture.LevelChanged+=level=>Dispatcher.InvokeAsync(()=>{if(sessionGeneration==listeningGeneration)audioMeter.Value=level;});
             capture.Failed+=message=>Dispatcher.InvokeAsync(async()=>{if(sessionGeneration==listeningGeneration){await StopListeningAsync();SetStatus(message);}});
@@ -261,7 +330,7 @@ public sealed class MainWindow : Window
             },token);
             if(capture is ProcessLoopbackCapture zoomCapture)await zoomCapture.StartAsync(zoomPid!.Value,token);
             else ((AudioCaptureService)capture).Start(device!.Id);
-            listening=true;if(device!=null)settings.DeviceId=device.Id;settings.AutoAnswer=autoAnswer.IsChecked==true;SaveSettings();listen.Content="Stop listening";devices.IsEnabled=false;audioSources.IsEnabled=false;SetStatus(zoomMode?"Listening to Zoom only · questions appear automatically":"Listening to output audio · questions appear automatically");credentialStatus.Text="Live transcription connected";
+            listening=true;if(device!=null)settings.DeviceId=device.Id;settings.AutoAnswer=autoAnswer.IsChecked==true;SaveSettings();listen.Content="Ⅱ";devices.IsEnabled=false;audioSources.IsEnabled=false;SetStatus(zoomMode?"Listening · Zoom":"Listening · output device");credentialStatus.Text="Live transcription connected";
         }
         catch(OperationCanceledException){await StopListeningAsync();SetStatus("Listening cancelled");}
         catch(Exception ex){await StopListeningAsync();SetStatus(SafeError(ex));}
@@ -270,9 +339,9 @@ public sealed class MainWindow : Window
 
     async Task StopListeningAsync()
     {
-        Interlocked.Increment(ref listeningGeneration);listening=false;listeningCts?.Cancel();autoCts?.Cancel();capture?.Dispose();capture=null;audioQueue?.Writer.TryComplete();audioQueue=null;
+        Interlocked.Increment(ref listeningGeneration);listening=false;listeningCts?.Cancel();autoCts?.Cancel();answerCts?.Cancel();generating=false;cancel.IsEnabled=false;capture?.Dispose();capture=null;audioQueue?.Writer.TryComplete();audioQueue=null;
         var old=transcriber;transcriber=null;if(old!=null){try{await old.DisposeAsync();}catch{}}
-        listen.Content="Start listening";listen.IsEnabled=key!=null&&profile!=null;devices.IsEnabled=audioSources.SelectedIndex==1;audioSources.IsEnabled=true;audioMeter.Value=0;
+        listen.Content="▶";listen.IsEnabled=key!=null&&profile!=null;devices.IsEnabled=audioSources.SelectedIndex==1;audioSources.IsEnabled=true;audioMeter.Value=0;RenderPage();partial="";pendingQuestion="";
         if(!closing)SetStatus("Listening paused");
     }
 
@@ -284,20 +353,20 @@ public sealed class MainWindow : Window
             partial="";if(string.IsNullOrWhiteSpace(text))return;
             committedTranscript.AppendLine(text);if(committedTranscript.Length>16000)committedTranscript.Remove(0,committedTranscript.Length-12000);
             pendingQuestion=(pendingQuestion+" "+text).Trim();if(pendingQuestion.Length>8000)pendingQuestion=text;
-            lastQuestion=pendingQuestion;question.Text=pendingQuestion;AddHistory("interviewer",text);
+            lastQuestion=pendingQuestion;updatingQuestion=true;question.Text=pendingQuestion;updatingQuestion=false;AddHistory("interviewer",text);
             if(autoAnswer.IsChecked==true && GroundingService.IsLikelyQuestion(pendingQuestion))
             {
                 autoCts?.Cancel();autoCts=new CancellationTokenSource();var token=autoCts.Token;
                 _=AutoAnswerAfterPauseAsync(token);
             }
         }
-        else{partial+=text;if(partial.Length>12000)partial=partial[^12000..];autoCts?.Cancel();}
+        else{partial+=text;if(partial.Length>8000)partial=partial[^8000..];autoCts?.Cancel();updatingQuestion=true;question.Text=(pendingQuestion+" "+partial).Trim();updatingQuestion=false;SetStatus("Hearing the question…");}
         transcript.Text=committedTranscript.ToString()+partial;transcript.ScrollToEnd();
     }
 
     async Task AutoAnswerAfterPauseAsync(CancellationToken token)
     {
-        try{await Task.Delay(1200,token);if(listening&&!token.IsCancellationRequested)await AnswerAsync();}catch(OperationCanceledException){}
+        try{await Task.Delay(250,token);if(listening&&!token.IsCancellationRequested)await AnswerAsync();}catch(OperationCanceledException){}
     }
 
     async Task AnswerAsync()
@@ -306,21 +375,24 @@ public sealed class MainWindow : Window
         var text=question.Text.Trim();if(text.Length==0)text=lastQuestion;if(text.Length==0){SetStatus("Type a question or wait for a completed transcript.");return;}
         if(text.Length>8000){SetStatus("Please shorten the question to fewer than 8,000 characters.");return;}
         pendingQuestion="";answerCts?.Cancel();answerCts=new CancellationTokenSource();var token=answerCts.Token;var generation=Interlocked.Increment(ref answerGeneration);
-        var prompt=GroundingService.BuildPrompt(profile,text,history,lengths.SelectedItem?.ToString()??"45–60 seconds");
-        modeLabel.Text="AI ANSWER · CHECK AGAINST YOUR EXPERIENCE";answer.Clear();SetStatus("Building your answer…");cancel.IsEnabled=true;
-        sourceDetails.Text="Sources supplied to AI:\n"+string.Join("\n",prompt.Sources);
+        if(!history.Any(x=>x.Speaker=="interviewer"&&x.Text==text))AddHistory("interviewer",text);
+        var plan=AnswerFlow.Build(profile,text,history,lengths.SelectedItem?.ToString()??"Detailed",string.IsNullOrWhiteSpace(settings.FavouriteProduct)?profile.CaseExampleProduct:settings.FavouriteProduct);
+        var prompt=plan.Prompt;var model=plan.Kind is QuestionKind.Experience or QuestionKind.General?settings.AnswerModel:settings.CaseModel;
+        currentOpening=plan.Opening;rawAnswer="";pageIndex=0;generating=true;
+        suppliedSources="Sources supplied to AI:\n"+string.Join("\n",prompt.Sources);document.Update("",currentOpening);RenderPage();
+        SetStatus(currentOpening.Length>0?"Opening ready · building the next parts…":"Building your answer…");cancel.IsEnabled=true;
         var streamEnded=false;
         try
         {
             using var client=answerClientFactory();
-            var completedAnswer=await client.GenerateAnswerAsync(key,settings.AnswerModel,prompt.Instructions,prompt.Input,delta=>Dispatcher.InvokeAsync(()=>
-            {if(!streamEnded&&generation==answerGeneration&&!token.IsCancellationRequested){answer.AppendText(delta);if(answer.VerticalOffset<1)answer.ScrollToHome();}}),token);
+            var completedAnswer=await client.GenerateAnswerAsync(key,model,prompt.Instructions,prompt.Input,delta=>Dispatcher.InvokeAsync(()=>
+            {if(!streamEnded&&generation==answerGeneration&&!token.IsCancellationRequested){rawAnswer+=delta;document.Update(rawAnswer,currentOpening);RenderPage();}}),token);
             streamEnded=true;
-            if(generation==answerGeneration){answer.Text=completedAnswer;SetStatus("Answer ready · speak in your own words");AddHistory("suggestion_not_spoken",completedAnswer);}
+            if(generation==answerGeneration){rawAnswer=completedAnswer;generating=false;document.Update(rawAnswer,currentOpening,true);RenderPage();SetStatus("Ready · Next continues");AddHistory("suggestion_not_spoken",string.Join("\n",document.Pages.Select(p=>p.Text))+"\n"+document.Notes);}
         }
         catch(OperationCanceledException){if(generation==answerGeneration)SetStatus("Answer stopped");}
-        catch(Exception ex){if(generation==answerGeneration){SetStatus(SafeError(ex));if(answer.Text.Length==0)answer.Text="The answer could not be generated. Your saved stories are available for local rehearsal.";}}
-        finally{streamEnded=true;if(generation==answerGeneration)cancel.IsEnabled=false;}
+        catch(Exception ex){if(generation==answerGeneration){SetStatus(SafeError(ex));if(answer.Text.Length==0)answer.Text="Could not generate an answer. Open Options for local rehearsal.";}}
+        finally{streamEnded=true;if(generation==answerGeneration){generating=false;cancel.IsEnabled=false;RenderPage();}}
     }
 
     void AddHistory(string speaker,string text){history.Add(new(speaker,text.Length>6000?text[..6000]:text));if(history.Count>12)history.RemoveAt(0);}
@@ -328,7 +400,7 @@ public sealed class MainWindow : Window
     {
         answerCts?.Cancel();autoCts?.Cancel();Interlocked.Increment(ref answerGeneration);
         history.Clear();committedTranscript.Clear();partial="";pendingQuestion="";lastQuestion="";
-        transcript.Text="Session cleared.";question.Clear();answer.Clear();cancel.IsEnabled=false;modeLabel.Text="YOUR NEXT ANSWER";
+        transcript.Text="Session cleared.";question.Clear();answer.Clear();cancel.IsEnabled=false;generating=false;document.Update("");pageIndex=0;currentOpening="";rawAnswer="";suppliedSources="";RenderPage();
     }
     void SaveSettings(){if(!smokeMode){try{settings.Save();}catch{SetStatus("Settings could not be saved; this session can continue.");}}}
     static string SafeError(Exception ex)
@@ -342,16 +414,21 @@ public sealed class MainWindow : Window
         if(text.Contains("timed",StringComparison.OrdinalIgnoreCase))return "The API connection timed out. Check your network and reconnect.";
         return "Connection failed. Check network, API access, model access and billing.";
     }
-    void SetStatus(string text){status.Text=text;}
+    void SetStatus(string text){status.Text=text;status.ToolTip=text;}
 
     public void ToggleCompact()
     {
-        compact=!compact;workspace.ColumnDefinitions[0].Width=new GridLength(compact?0:270);workspace.ColumnDefinitions[1].Width=new GridLength(compact?0:20);
-        sidebar.Visibility=compact?Visibility.Collapsed:Visibility.Visible;transcriptPanel.Visibility=compact?Visibility.Collapsed:Visibility.Visible;
-        Width=compact?680:1080;Height=compact?570:800;shell.Margin=new Thickness(compact?16:24);compactButton.Content=compact?"Full view":"Floating view";
+        options.IsExpanded=!options.IsExpanded;
     }
 
     public void PrepareSmokePreview(){ShowRehearsal();question.Text="Tell me about a product you owned end to end.";status.Text="Local rehearsal · no audio capture or API request";}
+    public void PrepareCasePreview()
+    {
+        question.Text="What would you improve in Swiggy?";pageIndex=0;generating=false;
+        currentOpening="I'd first narrow this to one user group and a clear outcome. Then I'd compare solutions and explain how I'd test the strongest option.";
+        rawAnswer="[[PART: User and goal]]\nI would focus on people ordering lunch between meetings. My working assumption is that uncertainty about arrival time causes more friction than the size of the restaurant selection. I'd validate that before choosing a solution.\n[[PART: Improvement]]\nI would test a deadline-aware discovery filter, with conservative delivery windows and a clear fallback when no meal fits.\n[[NOTES]]\n[Offline hypothetical preview]";
+        suppliedSources="Hypothetical case preview";document.Update(rawAnswer,currentOpening,true);RenderPage();SetStatus("Opening ready · Next continues");
+    }
     public object ProbeWindowIntegration()
     {
         var initial=WindowIntegration.SetCaptureExcluded(this,true);
@@ -359,7 +436,7 @@ public sealed class MainWindow : Window
         Background=Tint(.85);var darkTint=WindowIntegration.SetCaptureExcluded(this,true);Background=Tint(settings.OverlayTint);
         Hide();Show();var shown=WindowIntegration.SetCaptureExcluded(this,true);
         WindowState=WindowState.Minimized;WindowState=WindowState.Normal;var restored=WindowIntegration.SetCaptureExcluded(this,true);
-        return new {Initial=initial,LightTint=lightTint,DarkTint=darkTint,AfterHideShow=shown,AfterRestore=restored,AllowsTransparency,BackgroundAlpha=((SolidColorBrush)Background).Color.A,AutoAnswerDefault=autoAnswer.IsChecked,AudioSource=audioSources.SelectedItem,ZoomReceiverVerified=false,ApiCallsMade=false};
+        return new {Initial=initial,LightTint=lightTint,DarkTint=darkTint,AfterHideShow=shown,AfterRestore=restored,AllowsTransparency,BackgroundAlpha=((SolidColorBrush)Background).Color.A,AutoAnswerDefault=autoAnswer.IsChecked,AudioSource=audioSources.SelectedItem,Width,Height,OptionsExpanded=options.IsExpanded,ZoomReceiverVerified=false,ApiCallsMade=false};
     }
     public void SavePreview(string path)
     {

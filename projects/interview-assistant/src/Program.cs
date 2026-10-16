@@ -27,6 +27,8 @@ public static class Program
                 await Task.Delay(350);window.PrepareSmokePreview();
                 var path=Argument(args,"--output")??Path.Combine(AppContext.BaseDirectory,"preview.png");
                 window.SavePreview(path);window.ToggleCompact();await Task.Delay(250);window.SavePreview(Path.Combine(Path.GetDirectoryName(path)!,Path.GetFileNameWithoutExtension(path)+"-floating.png"));
+                window.ToggleCompact();window.PrepareCasePreview();await Task.Delay(100);window.SavePreview(Path.Combine(Path.GetDirectoryName(path)!,Path.GetFileNameWithoutExtension(path)+"-case.png"));
+                window.ResizeFromEdge("RB",-1000,-1000);await Task.Delay(100);window.SavePreview(Path.Combine(Path.GetDirectoryName(path)!,Path.GetFileNameWithoutExtension(path)+"-small.png"));
                 File.WriteAllText(Path.ChangeExtension(path,"checks.json"),JsonSerializer.Serialize(window.ProbeWindowIntegration(),new JsonSerializerOptions{WriteIndented=true}));
                 app.Shutdown(0);
             };

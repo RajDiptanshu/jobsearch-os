@@ -67,7 +67,7 @@ public sealed class RealtimeTranscriber : IAsyncDisposable
                         input = new
                         {
                             format = new { type = "audio/pcm", rate = 24000 },
-                            transcription = new { model = _model },
+                            transcription = TranscriptionOptions(),
                             turn_detection = (object?)null
                         }
                     }
@@ -89,6 +89,9 @@ public sealed class RealtimeTranscriber : IAsyncDisposable
             throw;
         }
     }
+
+    object TranscriptionOptions() => _model.Equals("gpt-live-transcribe", StringComparison.OrdinalIgnoreCase)
+        ? new { model = _model, delay = "minimal" } : (object)new { model = _model };
 
     public async Task AppendAudioAsync(byte[] pcm, CancellationToken ct)
     {

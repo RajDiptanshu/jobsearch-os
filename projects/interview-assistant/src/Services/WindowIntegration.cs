@@ -46,7 +46,10 @@ public sealed class WindowIntegration : IDisposable
         {
             (1, 0x20, "Ctrl+Alt+Space (listen/pause)"),
             (2, 0x0D, "Ctrl+Alt+Enter (answer)"),
-            (3, 0x48, "Ctrl+Alt+H (hide/show)")
+            (3, 0x48, "Ctrl+Alt+H (hide/show)"),
+            (4, 0x27, "Ctrl+Alt+Right (next part)"),
+            (5, 0x25, "Ctrl+Alt+Left (previous part)"),
+            (6, 0x53, "Ctrl+Alt+S (stop answer)")
         };
         foreach (var shortcut in shortcuts)
         {

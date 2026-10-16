@@ -10,11 +10,17 @@ public sealed class LocalSettings
     public string EnvFilePath { get; set; } = "";
     public string DeviceId { get; set; } = "";
     public string AnswerModel { get; set; } = "gpt-6.1-sol";
+    public string CaseModel { get; set; } = "gpt-6.1-sol";
+    public string FavouriteProduct { get; set; } = "";
+    public double ReadingFontSize { get; set; } = 19;
+    public double OverlayWidth { get; set; } = 460;
+    public double OverlayHeight { get; set; } = 380;
+    public int EndpointSilenceMs { get; set; } = 550;
     public string TranscriptionModel { get; set; } = "gpt-live-transcribe";
     public bool AutoAnswer { get; set; } = true;
     public string AudioSource { get; set; } = "Zoom";
     public double OverlayTint { get; set; } = 0.42;
-    public int ExperienceVersion { get; set; } = 2;
+    public int ExperienceVersion { get; set; } = 3;
     public bool CaptureExcluded { get; set; } = true;
     public static string SettingsDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "JobSearchOS.InterviewAssistant");
     public static LocalSettings Load()
@@ -30,8 +36,12 @@ public sealed class LocalSettings
         var settings=JsonSerializer.Deserialize<LocalSettings>(json) ?? new();
         using var document=JsonDocument.Parse(json);
         if(document.RootElement.ValueKind==JsonValueKind.Object&&!document.RootElement.TryGetProperty("ExperienceVersion",out _))settings.AutoAnswer=true;
-        settings.ExperienceVersion=2;
+        settings.ExperienceVersion=3;
         settings.OverlayTint=double.IsFinite(settings.OverlayTint)?Math.Clamp(settings.OverlayTint,.18,.85):.42;
+        settings.ReadingFontSize=double.IsFinite(settings.ReadingFontSize)?Math.Clamp(settings.ReadingFontSize,15,28):19;
+        settings.OverlayWidth=double.IsFinite(settings.OverlayWidth)?Math.Clamp(settings.OverlayWidth,340,1000):460;
+        settings.OverlayHeight=double.IsFinite(settings.OverlayHeight)?Math.Clamp(settings.OverlayHeight,300,900):380;
+        settings.EndpointSilenceMs=Math.Clamp(settings.EndpointSilenceMs,400,1200);
         return settings;
     }
     public void Save()

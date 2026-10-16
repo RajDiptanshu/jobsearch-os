@@ -4,6 +4,8 @@
 
 The profile contains basic role information, an optional target job description, a speaking style, facts, experience stories, cautions and source metadata. Each story has an `Id`, `Title`, `Tags`, `Facts`, `Caveats` and a `SpokenAnswer` rehearsal.
 
+An optional `CaseExampleProduct` string supplies a default example for favourite-product cases. It is a presentation preference, not evidence of usage, ownership or personal achievements. A product explicitly named in the current question takes precedence. The value can be overridden under Options.
+
 Use these evidence values exactly:
 
 | Value | Meaning |

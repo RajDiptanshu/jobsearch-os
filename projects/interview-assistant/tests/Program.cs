@@ -93,6 +93,14 @@ await Test("Question recognition handles imperatives and plain statements",()=>
     Check(!GroundingService.IsLikelyQuestion("Thanks for joining today")&&!GroundingService.IsLikelyQuestion(""),"False positive on simple statement");
     return Task.CompletedTask;
 });
+await Test("Recovery retrieval handles plurals, hyphenated titles, and generic interview wording",()=>
+{
+    var p=new CandidateProfile{Name="Example",Stories=Enumerable.Range(0,4).Select(i=>new ExperienceStory{Id="generic"+i,Title="Product experience",Facts=[new(){Id="general"+i,Text="Built a solution needed to measure impact",Source="cv",Evidence="CV"}]}).ToList()};
+    p.Stories.Add(new(){Id="recovery",Title="Event-driven payment-decline recovery",Tags=["payments","retries"],Facts=[new(){Id="recovered",Text="Recovered 65% of recoverable declined payments",Source="cv",Evidence="CV"}]});
+    var prompt=GroundingService.BuildPrompt(p,"Tell me about a payment recovery solution you built. Why was it needed and how did you measure impact?",[]);
+    using var packet=JsonDocument.Parse(prompt.Input);var stories=packet.RootElement.GetProperty("relevantStories");
+    Check(stories[0].GetProperty("id").GetString()=="recovery"&&prompt.Input.Contains("65%"),"Relevant recovery evidence was dropped");return Task.CompletedTask;
+});
 
 byte[] Pcm(int milliseconds,short level)
 {
@@ -157,6 +165,29 @@ await Test("Automatic Zoom capture and a translucent tint are the new defaults",
     var migrated=LocalSettings.Parse("{\"AutoAnswer\":false,\"OverlayTint\":4}");Check(migrated.AutoAnswer&&migrated.OverlayTint==.85,"Old default was not migrated or tint was not bounded");
     var manual=LocalSettings.Parse("{\"AutoAnswer\":false,\"ExperienceVersion\":2}");Check(!manual.AutoAnswer,"Explicit manual mode did not persist");return Task.CompletedTask;
 });
+await Test("Cases choose an approach, keep CV claims separate, and carry clarifications",()=>
+{
+    var profile=new CandidateProfile{Name="Example",TargetJobDescription="DO_NOT_SEND_JD_IN_CASE",Facts=[new(){Id="cv",Source="cv",Evidence="CV",Text="DO_NOT_SEND_CAREER_IN_CASE"}]};
+    foreach(var (q,kind) in new[]{("What is your favorite product and what improvements would you make?",QuestionKind.Product),("Estimate annual food deliveries in India",QuestionKind.Estimate),("Conversion dropped 15 percent yesterday. Diagnose it.",QuestionKind.Diagnosis),("Set a pricing strategy for a new product",QuestionKind.Strategy),("Tell me about a product you owned end to end",QuestionKind.Experience)})
+        Check(AnswerFlow.Classify(q)==kind,"Wrong route: "+q);
+    Check(AnswerFlow.Classify("How did you improve the booking journey?")==QuestionKind.Experience,"Past work was mistaken for a hypothetical case");
+    var plan=AnswerFlow.Build(profile,"What is your favourite product and how would you improve it?",[],"Detailed","Swiggy");
+    Check(plan.Opening.Length>50&&plan.Prompt.Input.Contains("Swiggy")&&!plan.Prompt.Input.Contains("DO_NOT_SEND_"),"Case has no useful opening or leaked unrelated private evidence");
+    Check(plan.Prompt.Instructions.Contains("[[PART:")&&plan.Prompt.Instructions.Contains("denominator")&&plan.Prompt.Instructions.Contains("untrusted"),"Case structure/truth boundary absent");
+    var follow=AnswerFlow.Build(profile,"Focus only on restaurant partners",[new("interviewer","What is your favourite product?"),new("interviewer","Focus only on restaurant partners")],"Detailed","Swiggy");
+    Check(follow.Kind==QuestionKind.Product&&follow.Prompt.Input.Contains("restaurant partners"),"Follow-up lost case context");return Task.CompletedTask;
+});
+await Test("Streaming sections hide markers and notes and preserve earlier pages",()=>
+{
+    var doc=new AnswerDocument();doc.Update("[[PA","Opening I can say now.");Check(doc.Pages.Count==1,"Partial marker leaked");
+    var first="[[PART: Goal]]\nI would clarify the target user and agree on an outcome.\n";
+    doc.Update(first,"Opening I can say now.");var stable=doc.Pages.Select(x=>x.Text).ToArray();
+    doc.Update(first+"[[PART: Solution]]\nI would test one change first.\n[[NOTES]]\n[General knowledge]","Opening I can say now.",true);
+    Check(stable.SequenceEqual(doc.Pages.Take(2).Select(x=>x.Text)),"Earlier sections changed as later sections arrived");
+    Check(doc.Pages.Count==3&&doc.Notes.Contains("General knowledge")&&doc.Pages.All(x=>!x.Text.Contains("[[")&&!x.Text.Contains("General knowledge")),"Protocol or reference text leaked into speech");
+    doc.Update("[[PART: Deep explanation]]\n"+string.Join(" ",Enumerable.Repeat("word",170)),"",true);
+    Check(doc.Pages.Count>=3&&doc.Pages.All(x=>x.Text.Split(' ').Length<=65),"Run-on output defeats compact reading");return Task.CompletedTask;
+});
 await Test("Completed questions auto-answer, manual mode waits, and new speech cancels the pending answer",async()=>
 {
     var done=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -175,6 +206,12 @@ await Test("Completed questions auto-answer, manual mode waits, and new speech c
                 var toggle=(System.Windows.Controls.CheckBox)typeof(MainWindow).GetField("autoAnswer",flags)!.GetValue(window)!;
                 var answer=(System.Windows.Controls.TextBox)typeof(MainWindow).GetField("answer",flags)!.GetValue(window)!;
                 var status=(System.Windows.Controls.TextBlock)typeof(MainWindow).GetField("status",flags)!.GetValue(window)!;
+                var options=(System.Windows.Controls.Expander)typeof(MainWindow).GetField("options",flags)!.GetValue(window)!;
+                Check(!options.IsExpanded&&window.Width<=500&&window.MinWidth<=340,"Default layout is not compact");
+                window.ResizeFromEdge("RB",150,100);Check(window.Width>=600&&window.Height>=470,"Corner resize did not grow");
+                window.ResizeFromEdge("RB",-1000,-1000);Check(window.Width==window.MinWidth&&window.Height==window.MinHeight,"Resize minimum failed");
+                var right=window.Left+window.Width;window.ResizeFromEdge("L",-80,0);Check(Math.Abs(window.Left+window.Width-right)<1,"Left edge resize moved the opposite edge");
+                options.IsExpanded=true;Check(window.Height>window.MinHeight,"Options failed to expand");options.IsExpanded=false;
                 async Task AwaitAnswer(int count)
                 {
                     var watch=Stopwatch.StartNew();while(watch.ElapsedMilliseconds<5000&&(handler.Requests<count||answer.Text!="Test answer"))await Task.Delay(50);
@@ -188,6 +225,16 @@ await Test("Completed questions auto-answer, manual mode waits, and new speech c
                 toggle.IsChecked=true;Hear("How did you prioritize?",true);await Task.Delay(100);Hear("And",false);await Task.Delay(1400);
                 Check(handler.Requests==2,"New speech did not cancel the pending answer");
                 Hear("And what was the trade-off?",true);await AwaitAnswer(3);
+                Hear("A live partial",false);var qbox=(System.Windows.Controls.TextBox)typeof(MainWindow).GetField("question",flags)!.GetValue(window)!;
+                Check(qbox.Text.Contains("A live partial"),"Question waited for final transcription");
+                handler.DelayMs=700;qbox.Text="What is your favourite product and what would you improve?";
+                var pending=(Task)typeof(MainWindow).GetMethod("AnswerAsync",flags)!.Invoke(window,null)!;
+                Check(answer.Text.StartsWith("I'd start"),"Case opening waited for the network");await pending;
+                Check(answer.Text.StartsWith("I'd start"),"Opening jumped away while answer arrived");
+                for(var step=0;step<12&&answer.Text!="Test answer";step++)typeof(MainWindow).GetMethod("MovePage",flags)!.Invoke(window,[1]);
+                Check(answer.Text=="Test answer","Next did not reveal generated case section");
+                await (Task)typeof(MainWindow).GetMethod("StopListeningAsync",flags)!.Invoke(window,null)!;
+                Check(!(bool)typeof(MainWindow).GetField("listening",flags)!.GetValue(window)!,"Pause left capture active");
                 done.TrySetResult();
             }
             catch(Exception ex){done.TrySetException(ex);}
@@ -235,10 +282,12 @@ return failures==0?0:1;
 
 sealed class StubHandler(string stream,HttpStatusCode status=HttpStatusCode.OK):HttpMessageHandler
 {
+    public int DelayMs{get;set;}
     public string? Body {get;private set;}public bool Authenticated{get;private set;}public string? Endpoint{get;private set;}public int Requests{get;private set;}
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();Requests++;Body=await request.Content!.ReadAsStringAsync(cancellationToken);
+        if(DelayMs>0)await Task.Delay(DelayMs,cancellationToken);
         Authenticated=request.Headers.Authorization?.Scheme=="Bearer";Endpoint=request.RequestUri?.ToString();
         return new HttpResponseMessage(status){Content=new StringContent(stream,Encoding.UTF8,"text/event-stream")};
     }

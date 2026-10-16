@@ -11,13 +11,13 @@ namespace InterviewAssistant.Services;
 public sealed class AIClient : IDisposable
 {
     private readonly HttpClient _http;
-    private readonly bool _ownsHttp;
+    // Keep the TLS connection pool warm across successive answers. Authorization belongs to each request.
+    private static readonly HttpClient SharedHttp = new(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(10) }) { Timeout = Timeout.InfiniteTimeSpan };
     private const int MaxEventCharacters = 2_000_000;
 
     public AIClient(HttpClient? httpClient = null)
     {
-        _ownsHttp = httpClient is null;
-        _http = httpClient ?? new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
+        _http = httpClient ?? SharedHttp;
     }
 
     public async Task<string> GenerateAnswerAsync(string apiKey, string model, string instructions,
@@ -34,10 +34,10 @@ public sealed class AIClient : IDisposable
         var payload = new Dictionary<string, object>
         {
             ["model"] = model.Trim(), ["instructions"] = instructions, ["input"] = input,
-            ["stream"] = true, ["store"] = false, ["max_output_tokens"] = 2400
+            ["stream"] = true, ["store"] = false, ["max_output_tokens"] = 4800
         };
         if (model.StartsWith("gpt-6", StringComparison.OrdinalIgnoreCase))
-            payload["reasoning"] = new { effort = "low" };
+            payload["reasoning"] = new { effort = model.StartsWith("gpt-6-luna", StringComparison.OrdinalIgnoreCase) ? "none" : "low" };
         request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
         try
@@ -164,6 +164,6 @@ public sealed class AIClient : IDisposable
 
     public void Dispose()
     {
-        if (_ownsHttp) _http.Dispose();
+        // The default client is process-wide; an injected client is owned by its caller.
     }
 }
