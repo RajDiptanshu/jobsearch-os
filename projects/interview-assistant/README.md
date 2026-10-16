@@ -90,7 +90,7 @@ Smoke mode renders the two app layouts with alpha transparency and probes captur
 
 ## Validation boundary
 
-This revision passes 21 offline/native checks on Windows 11, including the automatic/manual UI workflow and target-process audio isolation. Translucent WPF rendering and capture-flag readback pass locally. Mouse pass-through is not included. An actual Zoom meeting, live OpenAI transcription/answers, and Zoom receiver-side exclusion still require validation; the local API credential setup is pending.
+This revision passes 21 offline/native checks on Windows 11, including the automatic/manual UI workflow and target-process audio isolation. Translucent WPF rendering and capture-flag readback pass locally. Mouse pass-through is not included. Live OpenAI answer generation and Realtime transcription of a synthetic spoken question also passed using the shipped services. An actual Zoom meeting and Zoom receiver-side exclusion still require validation. Credentials are configured only in the local installation and are not included in this repository.
 
 Before relying on capture exclusion, join a Zoom test call on a second device and inspect the receiver's view while sharing the whole display and a specific application window. Repeat for the actual monitor, Zoom sharing mode, hide/show, minimize/restore and app restart you plan to use. Windows display affinity is best-effort supported-capture exclusion, not universal invisibility. Other capture methods or external cameras can still see the panel.
 
